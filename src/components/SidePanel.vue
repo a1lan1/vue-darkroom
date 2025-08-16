@@ -68,6 +68,7 @@
 
 <template>
   <v-navigation-drawer
+    v-if="store.photos.length > 0"
     v-model="drawerOpen"
     class="bg-grey-darken-4"
     location="right"
@@ -197,7 +198,7 @@
             {{ isExporting ? 'Exporting...' : 'Export All Photos' }}
           </v-btn>
 
-          <v-btn
+          <!--<v-btn
             block
             :disabled="!store.activePhoto"
             prepend-icon="mdi-download-single"
@@ -206,7 +207,7 @@
             @click="exportSelected"
           >
             Export Selected
-          </v-btn>
+          </v-btn>-->
         </div>
 
         <!-- Progress -->

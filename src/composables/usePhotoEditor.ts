@@ -3,9 +3,6 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { usePhotoStore } from '@/stores/PhotoStore'
 import 'cropperjs/dist/cropper.css'
 
-// Ensure cropper CSS is loaded
-console.log('Cropper CSS imported')
-
 export function usePhotoEditor () {
   const store = usePhotoStore()
   const imgRef = ref<HTMLImageElement | null>(null)
@@ -38,33 +35,22 @@ export function usePhotoEditor () {
 
   // Watch for active photo changes
   watch(() => store.activePhoto, async photo => {
-    console.log('Active photo changed:', photo?.id)
-
     if (photo) {
       // Wait for next tick to ensure imgRef is available
       await nextTick()
-      console.log('After nextTick - imgRef.value:', !!imgRef.value)
 
       if (imgRef.value) {
-        console.log('Initializing cropper for image:', imgRef.value.src)
         store.destroyCropper()
 
         // Wait for image to load before initializing cropper
         if (imgRef.value.complete) {
-          console.log('Image already complete, initializing cropper')
           initCropper()
         } else {
-          console.log('Image not complete, waiting for onload')
           imgRef.value.addEventListener('load', () => {
-            console.log('Image loaded, initializing cropper')
             initCropper()
           })
         }
-      } else {
-        console.log('imgRef not available after nextTick')
       }
-    } else {
-      console.log('No active photo')
     }
   })
 
@@ -73,7 +59,6 @@ export function usePhotoEditor () {
       return
     }
 
-    console.log('Creating cropper instance')
     const cropper = new Cropper(imgRef.value, {
       viewMode: 1,
       autoCropArea: 1,
@@ -87,10 +72,10 @@ export function usePhotoEditor () {
       cropBoxResizable: true,
       toggleDragModeOnDblclick: false,
       ready () {
-        console.log('Cropper ready')
+        // console.log('Cropper ready')
       },
       cropstart () {
-        console.log('Crop started')
+        // console.log('Crop started')
       },
     })
     store.setCropper(cropper)
@@ -98,27 +83,18 @@ export function usePhotoEditor () {
 
   // Crop functions
   function rotate90 () {
-    console.log('Rotate 90 called, cropper:', !!store.cropper, 'destroyed:', store.cropper?.destroyed)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.rotate(90)
-      console.log('Rotate 90 executed successfully')
-    } else {
-      console.log('Cannot rotate - cropper not available or destroyed')
     }
   }
 
   function rotateFine (deg: number) {
-    console.log('Rotate fine called:', deg, 'cropper:', !!store.cropper, 'destroyed:', store.cropper?.destroyed)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.rotate(deg)
-      console.log('Rotate fine executed successfully')
-    } else {
-      console.log('Cannot rotate fine - cropper not available or destroyed')
     }
   }
 
   function crop () {
-    console.log('Crop called, cropper:', !!store.cropper, 'activePhoto:', !!store.activePhoto)
     if (!store.cropper || !store.activePhoto || store.cropper.destroyed) {
       return
     }
@@ -127,7 +103,6 @@ export function usePhotoEditor () {
   }
 
   function resetCrop () {
-    console.log('Reset crop called, cropper:', !!store.cropper)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.reset()
     }

@@ -21,11 +21,11 @@
 
     // Add global drag & drop handlers for debugging
     document.addEventListener('dragenter', e => {
-      console.log('Global dragenter:', e.target)
+      // console.log('Global dragenter:', e.target)
     })
 
     document.addEventListener('drop', e => {
-      console.log('Global drop event:', e.dataTransfer?.files.length)
+      // console.log('Global drop event:', e.dataTransfer?.files.length)
     })
   })
 
@@ -77,21 +77,14 @@
     e.stopPropagation()
     isDragOver.value = false
 
-    console.log('Drop event triggered')
-
     const files = Array.from(e.dataTransfer?.files || [])
-    console.log('Files dropped:', files.length)
 
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
-    console.log('Image files:', imageFiles.length)
 
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
-        console.log('Adding file:', file.name, file.type)
         store.addPhotoFromFile(file)
       }
-    } else {
-      console.log('No image files found')
     }
   }
 
@@ -151,14 +144,14 @@
 
   <!-- Main Content -->
   <v-main
-    class="bg-black text-white pa-0"
+    class="bg-black h-100 text-white pa-0"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"
     @drop="handleDrop"
   >
     <div
-      class="h-100 position-relative"
+      class="h-100 d-flex align-center justify-center"
       @dragenter="handleDragEnter"
       @dragleave="handleDragLeave"
       @dragover="handleDragOver"
@@ -185,9 +178,6 @@
       <PhotoEditor />
     </div>
   </v-main>
-
-  <PhotoCarousel />
-  <SidePanel />
 </template>
 
 <style scoped>

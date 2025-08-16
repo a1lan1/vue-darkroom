@@ -24,7 +24,7 @@
 <template>
   <div>
     <!-- Crop Tools -->
-    <v-expansion-panels class="mb-4" variant="accordion">
+    <v-expansion-panels class="mb-2" elevation="5" variant="accordion">
       <v-expansion-panel>
         <v-expansion-panel-title>
           <v-icon class="mr-2">mdi-crop</v-icon>
@@ -34,7 +34,7 @@
           <div class="space-y-4">
             <!-- Aspect Ratio -->
             <div>
-              <v-label class="text-caption mb-2">Aspect Ratio</v-label>
+              <v-label class="text-caption mb-2">Ratio</v-label>
               <v-btn-toggle
                 v-model="cropAspectRatio"
                 class="flex-wrap"
@@ -45,7 +45,7 @@
                 <v-btn
                   v-for="ratio in aspectRatios"
                   :key="ratio.label"
-                  size="small"
+                  size="x-small"
                   :value="ratio.value"
                   variant="outlined"
                 >
@@ -55,17 +55,17 @@
             </div>
 
             <!-- Rotate Controls -->
-            <div class="d-flex gap-2">
-              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="small" @click="rotate90">
+            <div class="d-flex justify-space-between">
+              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="x-small" @click="rotate90">
                 Rotate 90°
               </v-btn>
-              <v-btn color="primary" prepend-icon="mdi-rotate-left" size="small" @click="() => rotateFine(-1)">
+              <v-btn color="primary" prepend-icon="mdi-rotate-left" size="x-small" @click="() => rotateFine(-1)">
                 -1°
               </v-btn>
-              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="small" @click="() => rotateFine(1)">
+              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="x-small" @click="() => rotateFine(1)">
                 +1°
               </v-btn>
-              <v-btn color="secondary" prepend-icon="mdi-refresh" size="small" @click="resetCrop">
+              <v-btn color="secondary" prepend-icon="mdi-refresh" size="x-small" @click="resetCrop">
                 Reset
               </v-btn>
             </div>
@@ -159,7 +159,7 @@
     </v-expansion-panels>
 
     <!-- Action Buttons -->
-    <div class="d-flex gap-2 justify-center">
+    <div class="d-flex justify-space-between">
       <v-btn color="primary" prepend-icon="mdi-crop" size="small" @click="crop">
         Apply Crop
       </v-btn>

@@ -12,12 +12,19 @@ export interface PhotoItem {
   quality: number // 0–100
 }
 
+interface PhotoStoreState {
+  photos: PhotoItem[]
+  activePhotoId: string | null
+  exportQuality: number // 0–100
+  cropper: Cropper | null
+}
+
 export const usePhotoStore = defineStore('photo', {
-  state: () => ({
-    photos: [] as PhotoItem[],
-    activePhotoId: null as string | null,
+  state: (): PhotoStoreState => ({
+    photos: [],
+    activePhotoId: null,
     exportQuality: 80,
-    cropper: null as Cropper | null,
+    cropper: null,
   }),
   getters: {
     activePhoto (state): PhotoItem | null {
@@ -26,17 +33,16 @@ export const usePhotoStore = defineStore('photo', {
   },
   actions: {
     addPhotoFromFile (file: File) {
-      console.log('addPhotoFromFile called with:', file.name, file.type, file.size)
       const reader = new FileReader()
       reader.addEventListener('load', () => {
-        console.log('FileReader onload triggered')
         const id = crypto.randomUUID()
         this.photos.push({ id, src: reader.result as string, quality: 80 })
-        console.log('Photo added to store, total photos:', this.photos.length)
+
         if (!this.activePhotoId) {
           this.activePhotoId = id
         }
       })
+      // eslint-disable-next-line unicorn/prefer-add-event-listener
       reader.onerror = error => {
         console.error('FileReader error:', error)
       }

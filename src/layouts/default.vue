@@ -3,9 +3,11 @@
     <router-view />
   </v-main>
 
-  <AppFooter />
+  <SidePanel />
+  <PhotoCarousel />
 </template>
 
 <script lang="ts" setup>
-  //
+  import PhotoCarousel from '@/components/PhotoCarousel.vue'
+  import SidePanel from '@/components/SidePanel.vue'
 </script>

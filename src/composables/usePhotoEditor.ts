@@ -1,12 +1,12 @@
-import { ref, computed, watch, nextTick } from 'vue'
 import Cropper from 'cropperjs'
-import 'cropperjs/dist/cropper.css'
+import { computed, nextTick, ref, watch } from 'vue'
 import { usePhotoStore } from '@/stores/PhotoStore'
+import 'cropperjs/dist/cropper.css'
 
 // Ensure cropper CSS is loaded
 console.log('Cropper CSS imported')
 
-export function usePhotoEditor() {
+export function usePhotoEditor () {
   const store = usePhotoStore()
   const imgRef = ref<HTMLImageElement | null>(null)
 
@@ -37,28 +37,28 @@ export function usePhotoEditor() {
   })
 
   // Watch for active photo changes
-  watch(() => store.activePhoto, async (photo) => {
+  watch(() => store.activePhoto, async photo => {
     console.log('Active photo changed:', photo?.id)
-    
+
     if (photo) {
       // Wait for next tick to ensure imgRef is available
       await nextTick()
       console.log('After nextTick - imgRef.value:', !!imgRef.value)
-      
+
       if (imgRef.value) {
         console.log('Initializing cropper for image:', imgRef.value.src)
         store.destroyCropper()
-        
+
         // Wait for image to load before initializing cropper
         if (imgRef.value.complete) {
           console.log('Image already complete, initializing cropper')
           initCropper()
         } else {
           console.log('Image not complete, waiting for onload')
-          imgRef.value.onload = () => {
+          imgRef.value.addEventListener('load', () => {
             console.log('Image loaded, initializing cropper')
             initCropper()
-          }
+          })
         }
       } else {
         console.log('imgRef not available after nextTick')
@@ -68,9 +68,11 @@ export function usePhotoEditor() {
     }
   })
 
-  function initCropper() {
-    if (!imgRef.value) return
-    
+  function initCropper () {
+    if (!imgRef.value) {
+      return
+    }
+
     console.log('Creating cropper instance')
     const cropper = new Cropper(imgRef.value, {
       viewMode: 1,
@@ -84,10 +86,10 @@ export function usePhotoEditor() {
       cropBoxMovable: true,
       cropBoxResizable: true,
       toggleDragModeOnDblclick: false,
-      ready() {
+      ready () {
         console.log('Cropper ready')
       },
-      cropstart() {
+      cropstart () {
         console.log('Crop started')
       },
     })
@@ -95,7 +97,7 @@ export function usePhotoEditor() {
   }
 
   // Crop functions
-  function rotate90() {
+  function rotate90 () {
     console.log('Rotate 90 called, cropper:', !!store.cropper, 'destroyed:', store.cropper?.destroyed)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.rotate(90)
@@ -105,7 +107,7 @@ export function usePhotoEditor() {
     }
   }
 
-  function rotateFine(deg: number) {
+  function rotateFine (deg: number) {
     console.log('Rotate fine called:', deg, 'cropper:', !!store.cropper, 'destroyed:', store.cropper?.destroyed)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.rotate(deg)
@@ -115,14 +117,16 @@ export function usePhotoEditor() {
     }
   }
 
-  function crop() {
+  function crop () {
     console.log('Crop called, cropper:', !!store.cropper, 'activePhoto:', !!store.activePhoto)
-    if (!store.cropper || !store.activePhoto || store.cropper.destroyed) return
+    if (!store.cropper || !store.activePhoto || store.cropper.destroyed) {
+      return
+    }
     const canvas = store.cropper.getCroppedCanvas()
     store.setEdited(store.activePhoto.id, canvas.toDataURL('image/jpeg'))
   }
 
-  function resetCrop() {
+  function resetCrop () {
     console.log('Reset crop called, cropper:', !!store.cropper)
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.reset()
@@ -130,7 +134,7 @@ export function usePhotoEditor() {
   }
 
   // Color correction functions
-  function applyAutoAdjust() {
+  function applyAutoAdjust () {
     // Simple auto-adjust algorithm
     brightness.value = 5
     contrast.value = 10
@@ -140,7 +144,7 @@ export function usePhotoEditor() {
     tint.value = 0
   }
 
-  function resetColorCorrection() {
+  function resetColorCorrection () {
     brightness.value = 0
     contrast.value = 0
     saturation.value = 0
@@ -149,8 +153,10 @@ export function usePhotoEditor() {
     tint.value = 0
   }
 
-  function applyChanges() {
-    if (!store.cropper || !store.activePhoto || store.cropper.destroyed) return
+  function applyChanges () {
+    if (!store.cropper || !store.activePhoto || store.cropper.destroyed) {
+      return
+    }
 
     // Apply crop first
     const canvas = store.cropper.getCroppedCanvas()
@@ -185,7 +191,7 @@ export function usePhotoEditor() {
     { label: '9:16', value: 9 / 16 },
   ]
 
-  function setAspectRatio(ratio: number | undefined) {
+  function setAspectRatio (ratio: number | undefined) {
     cropAspectRatio.value = ratio
     if (store.cropper && !store.cropper.destroyed) {
       store.cropper.setAspectRatio(ratio || Number.NaN)

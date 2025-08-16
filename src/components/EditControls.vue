@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { usePhotoEditor } from '@/composables/usePhotoEditor'
+  import { usePhotoEditor } from '@/composables/usePhotoEditor'
 
-const {
-  brightness,
-  contrast,
-  saturation,
-  clarity,
-  temperature,
-  tint,
-  cropAspectRatio,
-  aspectRatios,
-  rotate90,
-  rotateFine,
-  crop,
-  resetCrop,
-  applyAutoAdjust,
-  resetColorCorrection,
-  applyChanges,
-  setAspectRatio,
-} = usePhotoEditor()
+  const {
+    brightness,
+    contrast,
+    saturation,
+    clarity,
+    temperature,
+    tint,
+    cropAspectRatio,
+    aspectRatios,
+    rotate90,
+    rotateFine,
+    crop,
+    resetCrop,
+    applyAutoAdjust,
+    resetColorCorrection,
+    applyChanges,
+    setAspectRatio,
+  } = usePhotoEditor()
 </script>
 
 <template>
   <div>
     <!-- Crop Tools -->
-    <v-expansion-panels variant="accordion" class="mb-4">
+    <v-expansion-panels class="mb-4" variant="accordion">
       <v-expansion-panel>
         <v-expansion-panel-title>
           <v-icon class="mr-2">mdi-crop</v-icon>
@@ -37,16 +37,16 @@ const {
               <v-label class="text-caption mb-2">Aspect Ratio</v-label>
               <v-btn-toggle
                 v-model="cropAspectRatio"
-                mandatory
-                @update:model-value="setAspectRatio"
                 class="flex-wrap"
                 density="compact"
+                mandatory
+                @update:model-value="setAspectRatio"
               >
                 <v-btn
                   v-for="ratio in aspectRatios"
                   :key="ratio.label"
-                  :value="ratio.value"
                   size="small"
+                  :value="ratio.value"
                   variant="outlined"
                 >
                   {{ ratio.label }}
@@ -56,16 +56,16 @@ const {
 
             <!-- Rotate Controls -->
             <div class="d-flex gap-2">
-              <v-btn color="primary" @click="rotate90" prepend-icon="mdi-rotate-right" size="small">
+              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="small" @click="rotate90">
                 Rotate 90°
               </v-btn>
-              <v-btn color="primary" @click="() => rotateFine(-1)" prepend-icon="mdi-rotate-left" size="small">
+              <v-btn color="primary" prepend-icon="mdi-rotate-left" size="small" @click="() => rotateFine(-1)">
                 -1°
               </v-btn>
-              <v-btn color="primary" @click="() => rotateFine(1)" prepend-icon="mdi-rotate-right" size="small">
+              <v-btn color="primary" prepend-icon="mdi-rotate-right" size="small" @click="() => rotateFine(1)">
                 +1°
               </v-btn>
-              <v-btn color="secondary" @click="resetCrop" prepend-icon="mdi-refresh" size="small">
+              <v-btn color="secondary" prepend-icon="mdi-refresh" size="small" @click="resetCrop">
                 Reset
               </v-btn>
             </div>
@@ -82,10 +82,10 @@ const {
           <div class="space-y-4">
             <!-- Auto Adjust -->
             <div class="d-flex gap-2">
-              <v-btn color="success" @click="applyAutoAdjust" prepend-icon="mdi-auto-fix" size="small">
+              <v-btn color="success" prepend-icon="mdi-auto-fix" size="small" @click="applyAutoAdjust">
                 Auto Adjust
               </v-btn>
-              <v-btn color="secondary" @click="resetColorCorrection" prepend-icon="mdi-refresh" size="small">
+              <v-btn color="secondary" prepend-icon="mdi-refresh" size="small" @click="resetColorCorrection">
                 Reset
               </v-btn>
             </div>
@@ -94,63 +94,63 @@ const {
             <div class="d-grid grid-cols-2 gap-4">
               <v-slider
                 v-model="brightness"
-                min="-50"
-                max="50"
-                step="1"
-                label="Brightness"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Brightness"
+                max="50"
+                min="-50"
+                step="1"
+                thumb-label="always"
               />
               <v-slider
                 v-model="contrast"
-                min="-50"
-                max="50"
-                step="1"
-                label="Contrast"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Contrast"
+                max="50"
+                min="-50"
+                step="1"
+                thumb-label="always"
               />
               <v-slider
                 v-model="saturation"
-                min="-50"
-                max="50"
-                step="1"
-                label="Saturation"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Saturation"
+                max="50"
+                min="-50"
+                step="1"
+                thumb-label="always"
               />
               <v-slider
                 v-model="clarity"
-                min="-20"
-                max="20"
-                step="1"
-                label="Clarity"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Clarity"
+                max="20"
+                min="-20"
+                step="1"
+                thumb-label="always"
               />
               <v-slider
                 v-model="temperature"
-                min="-30"
-                max="30"
-                step="1"
-                label="Temperature"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Temperature"
+                max="30"
+                min="-30"
+                step="1"
+                thumb-label="always"
               />
               <v-slider
                 v-model="tint"
-                min="-30"
-                max="30"
-                step="1"
-                label="Tint"
-                thumb-label="always"
                 color="primary"
                 density="compact"
+                label="Tint"
+                max="30"
+                min="-30"
+                step="1"
+                thumb-label="always"
               />
             </div>
           </div>
@@ -160,10 +160,10 @@ const {
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 justify-center">
-      <v-btn color="primary" @click="crop" prepend-icon="mdi-crop" size="small">
+      <v-btn color="primary" prepend-icon="mdi-crop" size="small" @click="crop">
         Apply Crop
       </v-btn>
-      <v-btn color="success" @click="applyChanges" prepend-icon="mdi-check" size="small">
+      <v-btn color="success" prepend-icon="mdi-check" size="small" @click="applyChanges">
         Apply All Changes
       </v-btn>
     </div>

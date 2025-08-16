@@ -1,9 +1,11 @@
 <script setup lang="ts">
-//
+
 </script>
 
 <template>
-  <v-app theme="dark">
-    <router-view />
-  </v-app>
+
 </template>
+
+<style scoped>
+
+</style>

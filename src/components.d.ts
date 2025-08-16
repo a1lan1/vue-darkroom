@@ -9,11 +9,15 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
+    EditControls: typeof import('./components/EditControls.vue')['default']
     ExportPanel: typeof import('./components/ExportPanel.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    ImageCorrectionPanels: typeof import('./components/ImageCorrectionPanels.vue')['default']
+    PhotoCarousel: typeof import('./components/PhotoCarousel.vue')['default']
     PhotoEditor: typeof import('./components/PhotoEditor.vue')['default']
     PhotoGallery: typeof import('./components/PhotoGallery.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SidePanel: typeof import('./components/SidePanel.vue')['default']
   }
 }

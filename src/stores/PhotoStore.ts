@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import Compressor from 'compressorjs'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
+import Cropper from 'cropperjs'
 
 export interface PhotoItem {
   id: string
@@ -16,6 +17,7 @@ export const usePhotoStore = defineStore('photo', {
     photos: [] as PhotoItem[],
     activePhotoId: null as string | null,
     exportQuality: 80,
+    cropper: null as Cropper | null,
   }),
   getters: {
     activePhoto(state): PhotoItem | null {
@@ -24,11 +26,17 @@ export const usePhotoStore = defineStore('photo', {
   },
   actions: {
     addPhotoFromFile(file: File) {
+      console.log('addPhotoFromFile called with:', file.name, file.type, file.size)
       const reader = new FileReader()
       reader.onload = () => {
+        console.log('FileReader onload triggered')
         const id = crypto.randomUUID()
         this.photos.push({ id, src: reader.result as string, quality: 80 })
+        console.log('Photo added to store, total photos:', this.photos.length)
         if (!this.activePhotoId) this.activePhotoId = id
+      }
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error)
       }
       reader.readAsDataURL(file)
     },
@@ -60,6 +68,18 @@ export const usePhotoStore = defineStore('photo', {
             this.activePhotoId = null
           }
         }
+      }
+    },
+    
+    // Cropper methods
+    setCropper(cropper: Cropper | null) {
+      this.cropper = cropper
+    },
+    
+    destroyCropper() {
+      if (this.cropper) {
+        this.cropper.destroy()
+        this.cropper = null
       }
     },
     async exportAll() {

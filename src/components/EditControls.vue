@@ -1,5 +1,10 @@
 <script setup lang="ts">
+  // import { storeToRefs } from 'pinia'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
+  // import { usePhotoStore } from '@/stores/PhotoStore'
+
+  // const photoStore = usePhotoStore()
+  // const { photos, activePhoto, isExporting, exportQuality } = storeToRefs(photoStore)
 
   const {
     brightness,
@@ -81,7 +86,7 @@
         <v-expansion-panel-text>
           <div class="space-y-4">
             <!-- Auto Adjust -->
-            <div class="d-flex gap-2">
+            <div class="d-flex justify-space-between">
               <v-btn color="success" prepend-icon="mdi-auto-fix" size="small" @click="applyAutoAdjust">
                 Auto Adjust
               </v-btn>

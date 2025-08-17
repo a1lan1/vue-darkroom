@@ -10,10 +10,29 @@ export interface PhotoItem {
   editedSrc?: string // processed preview
   fileSize?: number // after export
   quality: number // 0–100
+  // Color correction settings
+  brightness: number
+  contrast: number
+  saturation: number
+  clarity: number
+  temperature: number
+  tint: number
+  // Crop data
+  cropData?: {
+    x: number
+    y: number
+    width: number
+    height: number
+    rotate: number
+    scaleX: number
+    scaleY: number
+  }
+  aspectRatio?: number
 }
 
 interface PhotoStoreState {
   photos: PhotoItem[]
+  isExporting: boolean
   activePhotoId: string | null
   exportQuality: number // 0–100
   cropper: Cropper | null
@@ -22,21 +41,34 @@ interface PhotoStoreState {
 export const usePhotoStore = defineStore('photo', {
   state: (): PhotoStoreState => ({
     photos: [],
+    isExporting: false,
     activePhotoId: null,
     exportQuality: 80,
     cropper: null,
   }),
+
   getters: {
     activePhoto (state): PhotoItem | null {
       return state.photos.find(p => p.id === state.activePhotoId) || null
     },
   },
+
   actions: {
     addPhotoFromFile (file: File) {
       const reader = new FileReader()
       reader.addEventListener('load', () => {
         const id = crypto.randomUUID()
-        this.photos.push({ id, src: reader.result as string, quality: 80 })
+        this.photos.push({
+          id,
+          src: reader.result as string,
+          quality: 80,
+          brightness: 0,
+          contrast: 0,
+          saturation: 0,
+          clarity: 0,
+          temperature: 0,
+          tint: 0,
+        })
 
         if (!this.activePhotoId) {
           this.activePhotoId = id
@@ -50,15 +82,24 @@ export const usePhotoStore = defineStore('photo', {
     },
     addPhotoFromSrc (src: string) {
       const id = crypto.randomUUID()
-      this.photos.push({ id, src, quality: 80 })
+      this.photos.push({
+        id,
+        src,
+        quality: 80,
+        brightness: 0,
+        contrast: 0,
+        saturation: 0,
+        clarity: 0,
+        temperature: 0,
+        tint: 0,
+      })
       if (!this.activePhotoId) {
         this.activePhotoId = id
       }
     },
-    setEdited (id: string, editedSrc: string) {
-      const photo = this.photos.find(p => p.id === id)
-      if (photo) {
-        photo.editedSrc = editedSrc
+    setEditedSrc (editedSrc: string) {
+      if (this.activePhoto) {
+        this.activePhoto.editedSrc = editedSrc
       }
     },
     setFileSize (id: string, size: number) {
@@ -68,6 +109,13 @@ export const usePhotoStore = defineStore('photo', {
       }
     },
     setActive (id: string) {
+      // Сохраняем состояние кропа для текущего активного фото
+      if (this.cropper && this.activePhoto) {
+        this.activePhoto.cropData = this.cropper.getData()
+        const container = this.cropper.getContainerData()
+        this.activePhoto.aspectRatio = container.width / container.height
+      }
+      // Переключаемся на новое фото
       this.activePhotoId = id
     },
     removePhoto (id: string) {
@@ -93,9 +141,9 @@ export const usePhotoStore = defineStore('photo', {
       }
     },
     async exportAll () {
-      if (this.photos.length === 0) {
-        return
-      }
+      if (this.photos.length === 0) return
+
+      this.isExporting = true
 
       const zip = new JSZip()
 
@@ -103,21 +151,21 @@ export const usePhotoStore = defineStore('photo', {
         const file = await new Promise<File>((resolve, reject) => {
           // Convert base64 string to Blob
           const base64Data = photo.editedSrc || photo.src
-          const byteCharacters = atob(base64Data.split(',')[1])
-          const byteNumbers = Array.from({ length: byteCharacters.length })
+          const base64DataPart = base64Data.split(',')[1]
+          const byteCharacters = atob(base64DataPart)
+          const byteNumbers = new Uint8Array(byteCharacters.length)
           for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i)
+            byteNumbers[i] = byteCharacters.codePointAt(i) || 0
           }
           const byteArray = new Uint8Array(byteNumbers)
           const blob = new Blob([byteArray], { type: 'image/jpeg' })
 
-          const store = this
           new Compressor(blob, {
-            quality: store.exportQuality / 100,
+            quality: this.exportQuality / 100,
             mimeType: 'image/jpeg',
-            success (result) {
+            success: result => {
               const f = new File([result], `photo-${photo.id}.jpg`, { type: result.type })
-              store.setFileSize(photo.id, f.size)
+              this.setFileSize(photo.id, f.size)
               resolve(f)
             },
             error (err) {

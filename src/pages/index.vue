@@ -1,12 +1,14 @@
 <script setup lang="ts">
+  import { storeToRefs } from 'pinia'
   import { onMounted, ref } from 'vue'
   import { useHotkey } from 'vuetify'
-  import PhotoCarousel from '@/components/PhotoCarousel.vue'
   import PhotoEditor from '@/components/PhotoEditor.vue'
-  import SidePanel from '@/components/SidePanel.vue'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
-  const store = usePhotoStore()
+  const photoStore = usePhotoStore()
+  const { exportAll, setActive, removePhoto, addPhotoFromFile } = photoStore
+  const { photos, activePhotoId } = storeToRefs(photoStore)
+
   const isDragOver = ref(false)
   const fileInput = ref<HTMLInputElement>()
 
@@ -30,23 +32,23 @@
   })
 
   // Hotkeys
-  useHotkey('arrow-left', () => {
-    const currentIndex = store.photos.findIndex(p => p.id === store.activePhotoId)
+  useHotkey('arrow left', () => {
+    const currentIndex = photos.value.findIndex(p => p.id === activePhotoId.value)
     if (currentIndex > 0) {
-      store.setActive(store.photos[currentIndex - 1].id)
+      setActive(photos.value[currentIndex - 1].id)
     }
   })
 
-  useHotkey('arrow-right', () => {
-    const currentIndex = store.photos.findIndex(p => p.id === store.activePhotoId)
-    if (currentIndex < store.photos.length - 1) {
-      store.setActive(store.photos[currentIndex + 1].id)
+  useHotkey('arrow right', () => {
+    const currentIndex = photos.value.findIndex(p => p.id === activePhotoId.value)
+    if (currentIndex < photos.value.length - 1) {
+      setActive(photos.value[currentIndex + 1].id)
     }
   })
 
   useHotkey('delete', () => {
-    if (store.activePhotoId) {
-      store.removePhoto(store.activePhotoId)
+    if (activePhotoId.value) {
+      removePhoto(activePhotoId.value)
     }
   })
 
@@ -83,7 +85,7 @@
 
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
-        store.addPhotoFromFile(file)
+        addPhotoFromFile(file)
       }
     }
   }
@@ -94,7 +96,7 @@
     const files = Array.from(target.files || [])
 
     for (const file of files) {
-      store.addPhotoFromFile(file)
+      addPhotoFromFile(file)
     }
 
     // Reset input
@@ -112,24 +114,34 @@
 
     <v-spacer />
 
-    <v-btn prepend-icon="mdi-folder-open" variant="text" @click="() => fileInput?.click()">
+    <v-btn
+      color="primary"
+      elevation="5"
+      prepend-icon="mdi-folder-open"
+      variant="text"
+      @click="() => fileInput?.click()"
+    >
       Import Photos
     </v-btn>
 
     <v-btn
-      :disabled="store.photos.length === 0"
+      color="success"
+      :disabled="photos.length === 0"
+      elevation="5"
       prepend-icon="mdi-download"
       variant="text"
-      @click="store.exportAll"
+      @click="exportAll"
     >
       Export All
     </v-btn>
 
     <v-divider class="mx-2" vertical />
 
-    <v-btn prepend-icon="mdi-help-circle" variant="text">
-      Help
-    </v-btn>
+    <v-btn
+      disabled
+      icon="mdi-help-circle"
+      variant="text"
+    />
   </v-app-bar>
 
   <!-- Hidden file input -->
@@ -160,7 +172,7 @@
       <!-- Drag Indicator -->
       <div
         v-if="isDragOver"
-        class="position-absolute inset-0 border-4 border-dashed border-primary bg-primary bg-opacity-10 pointer-events-none z-10 d-flex align-center justify-center"
+        class="position-absolute inset-0 border-4 border-dashed border-primary bg-opacity-10 pointer-events-none z-10 d-flex align-center justify-center"
       >
         <div class="text-center bg-grey-darken-4 pa-8 rounded-lg">
           <v-icon class="mb-4" color="primary" size="64">mdi-cloud-upload</v-icon>
@@ -180,51 +192,7 @@
   </v-main>
 </template>
 
-<style scoped>
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.flex-1 {
-  flex: 1 1 0%;
-}
-
-.h-full {
-  height: 100%;
-}
-
-.h-32 {
-  height: 8rem;
-}
-
-.w-80 {
-  width: 20rem;
-}
-
-.border-t {
-  border-top-width: 1px;
-}
-
-.border-l {
-  border-left-width: 1px;
-}
-
-.border-grey-darken-3 {
-  border-color: rgb(55 65 81);
-}
-
-.relative {
-  position: relative;
-}
-
-.min-h-0 {
-  min-height: 0;
-}
-
+<style lang="scss" scoped>
 .border-4 {
   border-width: 4px;
 }

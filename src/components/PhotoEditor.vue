@@ -1,24 +1,17 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
   const store = usePhotoStore()
-  const { imgRef, imageStyle, initCropper } = usePhotoEditor()
-
-  onMounted(() => {
-    if (store.activePhoto && imgRef.value) {
-      initCropper()
-    }
-  })
+  const { imgRef, imageStyle } = usePhotoEditor()
 </script>
 
 <template>
-  <div v-if="store.activePhoto" class="h-75 d-flex align-center justify-center bg-black pa-4">
+  <div v-if="store.activePhoto" class="h-75 d-flex align-center justify-center bg-black pa-10">
     <img
       ref="imgRef"
       alt="photo"
-      class="max-h-100 max-w-100 object-contain"
+      class="w-100"
       draggable="false"
       :src="store.activePhoto.editedSrc || store.activePhoto.src"
       :style="imageStyle"

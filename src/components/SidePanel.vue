@@ -1,22 +1,23 @@
 <script setup lang="ts">
+  import { storeToRefs } from 'pinia'
   import { computed, ref } from 'vue'
   import { usePhotoStore } from '@/stores/PhotoStore'
   import EditControls from './EditControls.vue'
 
-  const store = usePhotoStore()
-  const isExporting = ref(false)
+  const photoStore = usePhotoStore()
+  const { photos, activePhoto, isExporting, exportQuality } = storeToRefs(photoStore)
+
   const drawerOpen = ref(true)
 
   // Export settings
-  const exportQuality = ref(80)
   const exportFormat = ref('jpeg')
   const exportSize = ref('original')
 
   // Computed values
-  const totalPhotos = computed(() => store.photos.length)
-  const editedPhotos = computed(() => store.photos.filter(p => p.editedSrc && p.editedSrc !== p.src).length)
+  const totalPhotos = computed(() => photos.value.length)
+  const editedPhotos = computed(() => photos.value.filter(p => p.editedSrc && p.editedSrc !== p.src).length)
   const totalFileSize = computed(() => {
-    return store.photos.reduce((total, photo) => total + (photo.fileSize || 0), 0)
+    return photos.value.reduce((total, photo) => total + (photo.fileSize || 0), 0)
   })
 
   const formatFileSize = (bytes: number) => {
@@ -27,27 +28,6 @@
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`
-  }
-
-  // Export functions
-  async function exportAll () {
-    if (store.photos.length === 0) return
-
-    isExporting.value = true
-    store.exportQuality = exportQuality.value
-
-    try {
-      await store.exportAll()
-    } catch (error) {
-      console.error('Export failed:', error)
-    } finally {
-      isExporting.value = false
-    }
-  }
-
-  function exportSelected () {
-    if (!store.activePhoto) return
-  // TODO: Implement single photo export
   }
 
   // Format options
@@ -68,7 +48,7 @@
 
 <template>
   <v-navigation-drawer
-    v-if="store.photos.length > 0"
+    v-if="photos.length > 0"
     v-model="drawerOpen"
     class="bg-grey-darken-4"
     location="right"
@@ -108,7 +88,7 @@
 
         <!-- Quality -->
         <div class="mb-4">
-          <v-label class="text-subtitle-2 mb-2">Quality</v-label>
+          <v-label class="text-subtitle-2">Quality</v-label>
           <v-slider
             v-model="exportQuality"
             color="primary"
@@ -128,7 +108,7 @@
 
         <!-- Format -->
         <div class="mb-4">
-          <v-label class="text-subtitle-2 mb-2">Format</v-label>
+          <v-label class="text-subtitle-2 mb-1">Format</v-label>
           <v-btn-toggle
             v-model="exportFormat"
             class="w-100"
@@ -163,8 +143,8 @@
         </div>
 
         <!-- Export Options -->
-        <div class="mb-4">
-          <v-label class="text-subtitle-2 mb-2">Options</v-label>
+        <div>
+          <v-label class="text-subtitle-2">Options</v-label>
           <div>
             <v-checkbox
               density="compact"
@@ -184,12 +164,12 @@
           </div>
         </div>
 
-        <!-- Export Actions -->
+        <!-- Export Actions
         <div class="space-y-2">
           <v-btn
             block
             color="primary"
-            :disabled="store.photos.length === 0"
+            :disabled="photos.length === 0"
             :loading="isExporting"
             prepend-icon="mdi-download"
             size="small"
@@ -197,18 +177,17 @@
           >
             {{ isExporting ? 'Exporting...' : 'Export All Photos' }}
           </v-btn>
-
-          <!--<v-btn
+          <v-btn
             block
-            :disabled="!store.activePhoto"
+            :disabled="!activePhoto"
             prepend-icon="mdi-download-single"
             size="small"
             variant="outlined"
             @click="exportSelected"
           >
             Export Selected
-          </v-btn>-->
-        </div>
+          </v-btn>
+        </div>-->
 
         <!-- Progress -->
         <div v-if="isExporting" class="mt-3">

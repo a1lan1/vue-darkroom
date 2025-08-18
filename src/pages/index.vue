@@ -21,15 +21,6 @@
     document.addEventListener('drop', e => {
       e.preventDefault()
     })
-
-    // Add global drag & drop handlers for debugging
-    document.addEventListener('dragenter', e => {
-      // console.log('Global dragenter:', e.target)
-    })
-
-    document.addEventListener('drop', e => {
-      // console.log('Global drop event:', e.dataTransfer?.files.length)
-    })
   })
 
   // Hotkeys

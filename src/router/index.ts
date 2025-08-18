@@ -6,7 +6,7 @@
 
 import { setupLayouts } from 'virtual:generated-layouts'
 // Composables
-import { createRouter, createWebHistory } from 'vue-router/auto'
+// import { createRouter, createWebHistory } from 'vue-router/auto' // Эту строку нужно удалить или закомментировать
 import { routes } from 'vue-router/auto-routes'
 
 const router = createRouter({

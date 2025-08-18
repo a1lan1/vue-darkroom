@@ -5,7 +5,7 @@
   import EditControls from './EditControls.vue'
 
   const photoStore = usePhotoStore()
-  const { photos, activePhoto, isExporting, exportQuality } = storeToRefs(photoStore)
+  const { photos, isExporting, exportQuality } = storeToRefs(photoStore)
 
   const drawerOpen = ref(true)
 
@@ -58,7 +58,6 @@
     <v-container class="h-100 d-flex flex-column pa-4">
       <!-- Header -->
       <div class="mb-4">
-<!--        <h2 class="text-h6 font-weight-bold mb-2">Photo Editor</h2>-->
         <div class="space-y-1">
           <div class="d-flex justify-space-between text-caption">
             <span>Total Photos:</span>

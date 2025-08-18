@@ -29,8 +29,6 @@ export function usePhotoEditor () {
 
   // Watch for active photo changes
   watch(() => store.activePhoto, async (newPhoto, oldPhoto) => {
-    // applyChanges()
-
     // Save current crop data before switching
     if (oldPhoto && store.cropper) {
       oldPhoto.cropData = store.cropper.getData()
@@ -84,25 +82,6 @@ export function usePhotoEditor () {
     store.setCropper(new Cropper(imgRef.value, options))
   }
 
-  // Save crop data for a photo
-  function saveCropData (photoId: string) {
-    if (!store.cropper) {
-      return
-    }
-
-    const cropData = store.cropper.getData()
-    const photo = store.photos.find(p => p.id === photoId)
-
-    if (photo) {
-      photo.cropData = cropData
-
-      if (!photo.aspectRatio) {
-        const container = store.cropper.getContainerData()
-        photo.aspectRatio = container.width / container.height
-      }
-    }
-  }
-
   // Apply changes to the photo
   function applyChanges () {
     if (!store.cropper || !store.activePhoto) {
@@ -130,10 +109,6 @@ export function usePhotoEditor () {
     if (store.cropper) {
       store.cropper.rotate(deg)
     }
-
-    // if (store.activePhoto) {
-    //   saveCropData(store.activePhoto.id)
-    // }
   }
 
   function crop () {

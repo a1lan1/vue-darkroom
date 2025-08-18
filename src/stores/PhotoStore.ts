@@ -10,6 +10,7 @@ export interface PhotoItem {
   editedSrc?: string // processed preview
   fileSize?: number // after export
   quality: number // 0–100
+
   // Color correction settings
   brightness: number
   contrast: number
@@ -17,6 +18,8 @@ export interface PhotoItem {
   clarity: number
   temperature: number
   tint: number
+  blur: number
+
   // Crop data
   cropData?: {
     x: number
@@ -28,6 +31,7 @@ export interface PhotoItem {
     scaleY: number
   }
   aspectRatio?: number
+  cropAspectRatio?: number
 }
 
 interface PhotoStoreState {
@@ -51,6 +55,19 @@ export const usePhotoStore = defineStore('photo', {
     activePhoto (state): PhotoItem | null {
       return state.photos.find(p => p.id === state.activePhotoId) || null
     },
+    imageFilter (): string {
+      const filters = [
+        `brightness(${100 + (this.activePhoto?.brightness || 0)}%)`,
+        `contrast(${100 + (this.activePhoto?.contrast || 0)}%)`,
+        `saturate(${100 + (this.activePhoto?.saturation || 0)}%)`,
+        `sepia(${Math.abs(this.activePhoto?.clarity || 0)}%)`,
+        `grayscale(${Math.abs(this.activePhoto?.tint || 0)}%)`,
+        `invert(${Math.max(0, Math.min(100, this.activePhoto?.temperature || 0))}%)`,
+        `blur(${Math.max(0, Math.abs(this.activePhoto?.blur || 0) / 10)}px)`,
+      ]
+
+      return filters.join(' ')
+    },
   },
 
   actions: {
@@ -64,6 +81,7 @@ export const usePhotoStore = defineStore('photo', {
           quality: 80,
           brightness: 0,
           contrast: 0,
+          blur: 0,
           saturation: 0,
           clarity: 0,
           temperature: 0,
@@ -88,6 +106,7 @@ export const usePhotoStore = defineStore('photo', {
         quality: 80,
         brightness: 0,
         contrast: 0,
+        blur: 0,
         saturation: 0,
         clarity: 0,
         temperature: 0,
@@ -133,7 +152,6 @@ export const usePhotoStore = defineStore('photo', {
     setCropper (cropper: Cropper | null) {
       this.cropper = cropper
     },
-
     destroyCropper () {
       if (this.cropper) {
         this.cropper.destroy()
@@ -141,7 +159,9 @@ export const usePhotoStore = defineStore('photo', {
       }
     },
     async exportAll () {
-      if (this.photos.length === 0) return
+      if (this.photos.length === 0) {
+        return
+      }
 
       this.isExporting = true
 
@@ -154,9 +174,11 @@ export const usePhotoStore = defineStore('photo', {
           const base64DataPart = base64Data.split(',')[1]
           const byteCharacters = atob(base64DataPart)
           const byteNumbers = new Uint8Array(byteCharacters.length)
+
           for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.codePointAt(i) || 0
           }
+
           const byteArray = new Uint8Array(byteNumbers)
           const blob = new Blob([byteArray], { type: 'image/jpeg' })
 
@@ -178,6 +200,8 @@ export const usePhotoStore = defineStore('photo', {
 
       const content = await zip.generateAsync({ type: 'blob' })
       saveAs(content, 'photos.zip')
+
+      this.isExporting = false
     },
   },
 })

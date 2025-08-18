@@ -1,28 +1,36 @@
 <script setup lang="ts">
+  import { storeToRefs } from 'pinia'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
-  const store = usePhotoStore()
-  const { imgRef, imageStyle } = usePhotoEditor()
+  const photoStore = usePhotoStore()
+  const { activePhoto, imageFilter } = storeToRefs(photoStore)
+
+  const { imgRef } = usePhotoEditor()
 </script>
 
 <template>
-  <div v-if="store.activePhoto" class="h-75 d-flex align-center justify-center bg-black pa-10">
-    <img
-      ref="imgRef"
-      alt="photo"
-      class="w-100"
-      draggable="false"
-      :src="store.activePhoto.editedSrc || store.activePhoto.src"
-      :style="imageStyle"
-      @contextmenu.prevent
-    >
-  </div>
-  <div v-else class="h-100 d-flex align-center justify-center text-grey">
-    <div class="text-center">
-      <v-icon class="mb-3" size="48">mdi-image</v-icon>
-      <h3 class="text-h5 mb-2">No Photo Selected</h3>
-      <p class="text-body-1">Import photos to start editing</p>
+  <div class="fill-height d-flex align-center justify-center">
+    <div v-if="activePhoto" class="h-75 d-flex align-center justify-center bg-black pa-5">
+      <img
+        ref="imgRef"
+        alt="photo"
+        class="h-screen"
+        draggable="false"
+        :src="activePhoto.editedSrc || activePhoto.src"
+        @contextmenu.prevent
+      >
+    </div>
+    <div v-else class="text-center">
+      <v-icon class="mb-4" color="grey-darken-2" size="64">mdi-image-multiple-outline</v-icon>
+      <h2 class="text-h5 mb-2">No Photo Selected</h2>
+      <p class="text-body-1 mb-4">Drag and drop an image here or click the button above</p>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+::v-deep(.cropper-bg) {
+  filter: v-bind(imageFilter);
+}
+</style>

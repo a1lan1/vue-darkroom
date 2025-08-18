@@ -9,6 +9,7 @@
   const { exportAll, setActive, removePhoto, addPhotoFromFile } = photoStore
   const { photos, activePhotoId } = storeToRefs(photoStore)
 
+  const showHelp = ref(false)
   const isDragOver = ref(false)
   const fileInput = ref<HTMLInputElement>()
 
@@ -106,16 +107,17 @@
 
 <template>
   <!-- Top Toolbar -->
-  <v-app-bar color="grey-darken-4" dense elevation="2">
+  <v-app-bar color="grey-darken-4" density="compact" elevation="2">
     <v-toolbar-title class="font-weight-bold">
-      <v-icon class="mr-2">mdi-camera</v-icon>
-      VueDarkRoom
+      <v-icon class="mr-1" size="small">mdi-camera</v-icon>
+      DarkRoom
     </v-toolbar-title>
 
     <v-spacer />
 
     <v-btn
       color="primary"
+      density="compact"
       elevation="5"
       prepend-icon="mdi-folder-open"
       variant="text"
@@ -126,6 +128,7 @@
 
     <v-btn
       color="success"
+      density="compact"
       :disabled="photos.length === 0"
       elevation="5"
       prepend-icon="mdi-download"
@@ -138,9 +141,9 @@
     <v-divider class="mx-2" vertical />
 
     <v-btn
-      disabled
       icon="mdi-help-circle"
       variant="text"
+      @click="showHelp = true"
     />
   </v-app-bar>
 
@@ -155,13 +158,7 @@
   >
 
   <!-- Main Content -->
-  <v-main
-    class="bg-black h-100 text-white pa-0"
-    @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave"
-    @dragover="handleDragOver"
-    @drop="handleDrop"
-  >
+  <v-main class="bg-black text-white pa-0 h-100">
     <div
       class="h-100 d-flex align-center justify-center"
       @dragenter="handleDragEnter"
@@ -172,7 +169,7 @@
       <!-- Drag Indicator -->
       <div
         v-if="isDragOver"
-        class="position-absolute inset-0 border-4 border-dashed border-primary bg-opacity-10 pointer-events-none z-10 d-flex align-center justify-center"
+        class="position-absolute inset-0 bg-opacity-10 pointer-events-none z-10 d-flex align-center justify-center"
       >
         <div class="text-center bg-grey-darken-4 pa-8 rounded-lg">
           <v-icon class="mb-4" color="primary" size="64">mdi-cloud-upload</v-icon>
@@ -190,6 +187,23 @@
       <PhotoEditor />
     </div>
   </v-main>
+
+  <!-- Help Dialog -->
+  <v-dialog v-model="showHelp" max-width="600">
+    <v-card>
+      <v-card-title class="text-h5">How to use</v-card-title>
+      <v-card-text>
+        <p class="mb-4">1. Click "Import Photos" or drag and drop images to start editing</p>
+        <p class="mb-4">2. Use the side panel to adjust image settings</p>
+        <p class="mb-4">3. Click "Export All" to download your edited photos</p>
+        <p class="text-caption text-medium-emphasis">Keyboard shortcuts: Left/Right arrows to navigate, Delete to remove photo</p>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="primary" @click="showHelp = false">Got it!</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style lang="scss" scoped>

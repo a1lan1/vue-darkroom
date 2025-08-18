@@ -158,7 +158,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.brightness = 0"
+          @dblclick="activePhoto.brightness = 0"
         />
         <v-slider
           v-model="activePhoto.contrast"
@@ -170,7 +170,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.contrast = 0"
+          @dblclick="activePhoto.contrast = 0"
         />
         <v-slider
           v-model="activePhoto.saturation"
@@ -182,7 +182,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.saturation = 0"
+          @dblclick="activePhoto.saturation = 0"
         />
         <v-slider
           v-model="activePhoto.sepia"
@@ -194,7 +194,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.sepia = 0"
+          @dblclick="activePhoto.sepia = 0"
         />
         <v-slider
           v-model="activePhoto.blur"
@@ -206,7 +206,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.blur = 0"
+          @dblclick="activePhoto.blur = 0"
         />
         <v-slider
           v-model="activePhoto.invert"
@@ -218,7 +218,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.invert = 0"
+          @dblclick="activePhoto.invert = 0"
         />
         <v-slider
           v-model="activePhoto.grayscale"
@@ -230,7 +230,7 @@
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="() => activePhoto.grayscale = 0"
+          @dblclick="activePhoto.grayscale = 0"
         />
       </div>
     </v-list-item>

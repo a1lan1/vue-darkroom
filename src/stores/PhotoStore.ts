@@ -15,8 +15,8 @@ export const usePhotoStore = defineStore('photo', {
   }),
 
   getters: {
-    activePhoto (state): PhotoItem | null {
-      return state.photos.find(p => p.id === state.activePhotoId) || null
+    activePhoto (state): PhotoItem | undefined {
+      return state.photos.find(p => p.id === state.activePhotoId)
     },
     imageFilter (): string {
       const filters = [

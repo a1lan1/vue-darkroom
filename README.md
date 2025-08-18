@@ -14,57 +14,38 @@
 yarn dev
 ```
 
-## **Основные функции:**
+## **Key Features:**
 
-### **1. Современный интерфейс в стиле Lightroom**
-- Темная тема с профессиональным дизайном
-- Адаптивная сетка с панелями
-- Drag & Drop для импорта фотографий
-- Горячие клавиши для навигации
+### **1. Modern Lightroom-like Interface**
+- Dark theme
+- Responsive grid with panels
+- Drag & Drop for photo import
+- Hotkeys for navigation
 
-### **2. Расширенное редактирование фотографий**
-- **Обрезка (Crop)**: с предустановленными пропорциями (1:1, 4:3, 16:9 и др.)
-- **Поворот**: на 90° и точная настройка горизонта
-- **Цветокоррекция**: яркость, контраст, насыщенность, четкость
-- **Автонастройка**: автоматическое улучшение фотографий
-- **Температура и оттенок**: для настройки цветового баланса
+### **2. Advanced Photo Editing**
+- **Crop**: with preset aspect ratios (1:1, 4:3, 16:9, etc.)
+- **Rotate**: 90° increments and fine horizon adjustment
+- **Color Correction**: brightness, contrast, saturation, clarity
 
-### **3. Улучшенная галерея**
-- Сетка миниатюр 4x4
-- Отображение размера файлов
-- Индикаторы отредактированных фотографий
-- Hover-эффекты и анимации
-- Счетчик фотографий
+### **3. Enhanced Gallery**
+- File size display
+- Edited photo indicators
+- Hover effects and animations
+- Photo counter
 
-### **4. Профессиональный экспорт**
-- Настройка качества сжатия
-- Выбор формата (JPEG, PNG, WebP)
-- Выбор размера экспорта
-- Пакетная обработка в ZIP
-- Прогресс-бар и индикаторы
+### **4. Export**
+- Compression quality settings
+- Format selection (JPEG, PNG, WebP)
+- Export size options
+- Batch processing to ZIP
+- Progress bar and indicators
 
-### **5. Горячие клавиши**
-- `←` / `→` - навигация между фотографиями
-- `Delete` - удаление фотографии
+## 🛠 **Technical Features:**
 
-### **6. Drag & Drop**
-- Импорт фотографий перетаскиванием
-- Визуальная обратная связь при перетаскивании
-- Поддержка множественного выбора
-
-## 🛠 **Технические особенности:**
-
-- **Vue 3 Composition API** с TypeScript
-- **Pinia** для управления состоянием
-- **Vuetify 3** для UI компонентов
-- **CropperJS** для редактирования
-- **CompressorJS** для сжатия
-- **JSZip** для создания архивов
-- **File-Saver** для скачивания
-
-Приложение готово к использованию! Вы можете:
-1. Импортировать фотографии через кнопку или drag & drop
-2. Редактировать их с помощью мощных инструментов
-3. Экспортировать все фотографии одним кликом
-4. Использовать горячие клавиши для быстрой навигации
-
+- **Vue 3 Composition API** with TypeScript
+- **Pinia** for state management
+- **Vuetify 3** for UI components
+- **CropperJS** for editing
+- **CompressorJS** for compression
+- **JSZip** for archive creation
+- **File-Saver** for downloads

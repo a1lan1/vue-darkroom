@@ -24,6 +24,9 @@ export default defineConfig({
         'vue',
         VueRouterAutoImports,
         {
+          'vue-router': ['createRouter', 'createWebHistory'],
+        },
+        {
           pinia: ['defineStore', 'storeToRefs'],
         },
       ],

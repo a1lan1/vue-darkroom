@@ -19,6 +19,8 @@
     "WritableComputedRef": true,
     "computed": true,
     "createApp": true,
+    "createRouter": true,
+    "createWebHistory": true,
     "customRef": true,
     "defineAsyncComponent": true,
     "defineComponent": true,

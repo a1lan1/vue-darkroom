@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
+  import { useHotkey } from 'vuetify/framework'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
@@ -12,18 +13,22 @@
     rotateFine,
     crop,
     resetCrop,
-    applyAutoAdjust,
     resetColorCorrection,
     applyChanges,
     setAspectRatio,
   } = usePhotoEditor()
+
+  // Hotkeys
+  useHotkey('[', () => rotateFine(90))
+  useHotkey(']', () => rotateFine(-90))
+  useHotkey('\'', () => rotateFine(1))
+  useHotkey('\\', () => rotateFine(-1))
 </script>
 
 <template>
   <!-- Crop Tools -->
   <v-list
     v-if="activePhoto"
-    class="mt-1"
     variant="flat"
   >
     <v-list-item class="px-0">
@@ -102,19 +107,6 @@
         </v-btn>
       </v-btn-group>
 
-      <v-slider
-        class="mt-2"
-        density="compact"
-        hide-details
-        label="Horizon"
-        max="10"
-        min="-10"
-        step="1"
-        thumb-label
-        thumb-size="10"
-        @update:model-value="(deg) => rotateFine(deg)"
-      />
-
       <div class="d-flex justify-space-around mt-2">
         <v-btn
           color="primary"
@@ -140,11 +132,22 @@
 
     <v-list-item class="px-0">
       <template #title>
-        <span class="text-h6">Color Correction</span>
+        <div class="d-flex justify-space-between align-center">
+          <span class="text-h6">Color Correction</span>
+
+          <v-btn
+            color="error"
+            prepend-icon="mdi-refresh"
+            size="x-small"
+            @click="resetColorCorrection"
+          >
+            Reset
+          </v-btn>
+        </div>
       </template>
 
       <!-- Sliders -->
-      <div class="mt-1">
+      <div class="mt-1 px-1">
         <v-slider
           v-model="activePhoto.brightness"
           density="compact"
@@ -155,6 +158,7 @@
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.brightness = 0"
         />
         <v-slider
           v-model="activePhoto.contrast"
@@ -166,6 +170,7 @@
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.contrast = 0"
         />
         <v-slider
           v-model="activePhoto.saturation"
@@ -177,71 +182,56 @@
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.saturation = 0"
         />
         <v-slider
-          v-model="activePhoto.clarity"
+          v-model="activePhoto.sepia"
           density="compact"
           hide-details
-          label="Sepia clarity"
+          label="Sepia"
           max="100"
-          min="-100"
+          min="0"
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.sepia = 0"
         />
         <v-slider
           v-model="activePhoto.blur"
           density="compact"
           hide-details
-          label="blur"
+          label="Blur"
           max="100"
-          min="-100"
+          min="0"
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.blur = 0"
         />
         <v-slider
-          v-model="activePhoto.temperature"
+          v-model="activePhoto.invert"
           density="compact"
           hide-details
-          label="Temperature invert"
+          label="Invert"
           max="100"
-          min="-100"
+          min="0"
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.invert = 0"
         />
         <v-slider
-          v-model="activePhoto.tint"
+          v-model="activePhoto.grayscale"
           density="compact"
           hide-details
-          label="Tint grayscale"
+          label="Grayscale"
           max="100"
           min="-100"
           step="1"
           thumb-label
           thumb-size="10"
+          @dblclick="() => activePhoto.grayscale = 0"
         />
-      </div>
-
-      <!-- Auto Adjust -->
-      <div class="d-flex justify-space-around mt-2">
-        <v-btn
-          color="success"
-          prepend-icon="mdi-auto-fix"
-          size="x-small"
-          @click="applyAutoAdjust"
-        >
-          Auto Adjust
-        </v-btn>
-        <v-btn
-          color="error"
-          prepend-icon="mdi-refresh"
-          size="x-small"
-          @click="resetColorCorrection"
-        >
-          Reset
-        </v-btn>
       </div>
     </v-list-item>
   </v-list>

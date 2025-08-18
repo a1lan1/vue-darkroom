@@ -3,10 +3,9 @@
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
+  const { imgRef } = usePhotoEditor()
   const photoStore = usePhotoStore()
   const { activePhoto, imageFilter } = storeToRefs(photoStore)
-
-  const { imgRef } = usePhotoEditor()
 </script>
 
 <template>

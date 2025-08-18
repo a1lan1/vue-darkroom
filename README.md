@@ -6,7 +6,7 @@
 - Drag & Drop photo import
 - Thumbnail preview with file size chip
 - Keyboard shortcuts (via useHotkey)
-- Editing: crop, rotate, fine rotate, clarity, color tuning
+- Editing: crop, rotate, fine rotate, sepia, color tuning
 - Compression quality slider
 - Export all photos as ZIP (via compressorjs + jszip + file-saver)
 

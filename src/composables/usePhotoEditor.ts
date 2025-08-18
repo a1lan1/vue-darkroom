@@ -3,6 +3,16 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { usePhotoStore } from '@/stores/PhotoStore'
 import 'cropperjs/dist/cropper.css'
 
+const DEFAULT_COLOR_SETTINGS = {
+  brightness: 0,
+  contrast: 0,
+  saturation: 0,
+  sepia: 0,
+  blur: 0,
+  invert: 0,
+  grayscale: 0,
+}
+
 const imgRef = ref<HTMLImageElement | null>(null)
 
 export function usePhotoEditor () {
@@ -126,23 +136,6 @@ export function usePhotoEditor () {
     // }
   }
 
-  // Apply auto-adjust to colors
-  function applyAutoAdjust () {
-    if (!store.activePhoto) {
-      return
-    }
-
-    Object.assign(store.activePhoto, {
-      brightness: 5,
-      contrast: 10,
-      saturation: 15,
-      clarity: 5,
-      temperature: 10,
-      tint: 20,
-    })
-    applyChanges()
-  }
-
   function crop () {
     if (!store.cropper || !store.activePhoto) {
       return
@@ -165,14 +158,7 @@ export function usePhotoEditor () {
       return
     }
 
-    Object.assign(store.activePhoto, {
-      brightness: 0,
-      contrast: 0,
-      saturation: 0,
-      clarity: 0,
-      temperature: 0,
-      tint: 0,
-    })
+    Object.assign(store.activePhoto, DEFAULT_COLOR_SETTINGS)
     applyChanges()
   }
 
@@ -200,7 +186,6 @@ export function usePhotoEditor () {
     rotateFine,
     crop,
     resetCrop,
-    applyAutoAdjust,
     resetColorCorrection,
     applyChanges,
     setAspectRatio,

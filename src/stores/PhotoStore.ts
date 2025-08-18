@@ -1,46 +1,9 @@
 import type Cropper from 'cropperjs'
+import type { PhotoItem, PhotoStoreState } from '@/types'
 import Compressor from 'compressorjs'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 import { defineStore } from 'pinia'
-
-export interface PhotoItem {
-  id: string
-  src: string // original
-  editedSrc?: string // processed preview
-  fileSize?: number // after export
-  quality: number // 0–100
-
-  // Color correction settings
-  brightness: number
-  contrast: number
-  saturation: number
-  clarity: number
-  temperature: number
-  tint: number
-  blur: number
-
-  // Crop data
-  cropData?: {
-    x: number
-    y: number
-    width: number
-    height: number
-    rotate: number
-    scaleX: number
-    scaleY: number
-  }
-  aspectRatio?: number
-  cropAspectRatio?: number
-}
-
-interface PhotoStoreState {
-  photos: PhotoItem[]
-  isExporting: boolean
-  activePhotoId: string | null
-  exportQuality: number // 0–100
-  cropper: Cropper | null
-}
 
 export const usePhotoStore = defineStore('photo', {
   state: (): PhotoStoreState => ({
@@ -60,9 +23,9 @@ export const usePhotoStore = defineStore('photo', {
         `brightness(${100 + (this.activePhoto?.brightness || 0)}%)`,
         `contrast(${100 + (this.activePhoto?.contrast || 0)}%)`,
         `saturate(${100 + (this.activePhoto?.saturation || 0)}%)`,
-        `sepia(${Math.abs(this.activePhoto?.clarity || 0)}%)`,
-        `grayscale(${Math.abs(this.activePhoto?.tint || 0)}%)`,
-        `invert(${Math.max(0, Math.min(100, this.activePhoto?.temperature || 0))}%)`,
+        `sepia(${Math.abs(this.activePhoto?.sepia || 0)}%)`,
+        `grayscale(${Math.abs(this.activePhoto?.grayscale || 0)}%)`,
+        `invert(${Math.max(0, Math.min(100, this.activePhoto?.invert || 0))}%)`,
         `blur(${Math.max(0, Math.abs(this.activePhoto?.blur || 0) / 10)}px)`,
       ]
 
@@ -83,9 +46,9 @@ export const usePhotoStore = defineStore('photo', {
           contrast: 0,
           blur: 0,
           saturation: 0,
-          clarity: 0,
-          temperature: 0,
-          tint: 0,
+          sepia: 0,
+          invert: 0,
+          grayscale: 0,
         })
 
         if (!this.activePhotoId) {
@@ -108,9 +71,9 @@ export const usePhotoStore = defineStore('photo', {
         contrast: 0,
         blur: 0,
         saturation: 0,
-        clarity: 0,
-        temperature: 0,
-        tint: 0,
+        sepia: 0,
+        invert: 0,
+        grayscale: 0,
       })
       if (!this.activePhotoId) {
         this.activePhotoId = id

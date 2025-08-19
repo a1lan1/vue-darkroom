@@ -118,9 +118,9 @@
     </v-btn>
 
     <v-btn
+      v-if="photos.length > 0"
       color="success"
       density="compact"
-      :disabled="photos.length === 0"
       elevation="5"
       prepend-icon="mdi-download"
       variant="text"

@@ -6,22 +6,12 @@
   import { usePhotoStore } from '@/stores/PhotoStore'
 
   const photoStore = usePhotoStore()
-  const { exportAll, setActive, removePhoto, addPhotoFromFile } = photoStore
   const { photos, activePhotoId } = storeToRefs(photoStore)
+  const { exportAll, setActive, removePhoto, addPhotoFromFile, destroyCropper } = photoStore
 
   const showHelp = ref(false)
   const isDragOver = ref(false)
   const fileInput = ref<HTMLInputElement>()
-
-  // Prevent default drag behavior on document
-  onMounted(() => {
-    document.addEventListener('dragover', e => {
-      e.preventDefault()
-    })
-    document.addEventListener('drop', e => {
-      e.preventDefault()
-    })
-  })
 
   // Hotkeys
   useHotkey('Alt+ArrowLeft', () => {
@@ -82,7 +72,6 @@
     }
   }
 
-  // File input
   function handleFileSelect (e: Event) {
     const target = e.target as HTMLInputElement
     const files = Array.from(target.files || [])
@@ -91,9 +80,20 @@
       addPhotoFromFile(file)
     }
 
-    // Reset input
     target.value = ''
   }
+
+  // Prevent default drag behavior on document
+  onMounted(() => {
+    document.addEventListener('dragover', e => {
+      e.preventDefault()
+    })
+    document.addEventListener('drop', e => {
+      e.preventDefault()
+    })
+  })
+
+  onUnmounted(destroyCropper)
 </script>
 
 <template>

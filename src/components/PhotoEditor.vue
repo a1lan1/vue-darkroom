@@ -10,7 +10,10 @@
 
 <template>
   <div class="fill-height d-flex align-center justify-center">
-    <div v-if="activePhoto" class="h-75 d-flex align-center justify-center bg-black pa-5">
+    <div
+      v-if="activePhoto"
+      class="h-75 d-flex align-center justify-center bg-black pa-5"
+    >
       <img
         ref="imgRef"
         alt="photo"

@@ -55,29 +55,8 @@ export const usePhotoStore = defineStore('photo', {
           this.activePhotoId = id
         }
       })
-      // eslint-disable-next-line unicorn/prefer-add-event-listener
-      reader.onerror = error => {
-        console.error('FileReader error:', error)
-      }
+
       reader.readAsDataURL(file)
-    },
-    addPhotoFromSrc (src: string) {
-      const id = crypto.randomUUID()
-      this.photos.push({
-        id,
-        src,
-        quality: 80,
-        brightness: 0,
-        contrast: 0,
-        blur: 0,
-        saturation: 0,
-        sepia: 0,
-        invert: 0,
-        grayscale: 0,
-      })
-      if (!this.activePhotoId) {
-        this.activePhotoId = id
-      }
     },
     setEditedSrc (editedSrc: string) {
       if (this.activePhoto) {
@@ -91,13 +70,12 @@ export const usePhotoStore = defineStore('photo', {
       }
     },
     setActive (id: string) {
-      // Сохраняем состояние кропа для текущего активного фото
       if (this.cropper && this.activePhoto) {
         this.activePhoto.cropData = this.cropper.getData()
         const container = this.cropper.getContainerData()
         this.activePhoto.aspectRatio = container.width / container.height
       }
-      // Переключаемся на новое фото
+
       this.activePhotoId = id
     },
     removePhoto (id: string) {
@@ -110,8 +88,6 @@ export const usePhotoStore = defineStore('photo', {
         }
       }
     },
-
-    // Cropper methods
     setCropper (cropper: Cropper | null) {
       this.cropper = cropper
     },

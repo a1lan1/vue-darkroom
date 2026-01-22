@@ -39,6 +39,14 @@ export function usePhotoEditor () {
       await nextTick()
 
       initCropper()
+
+      if (newPhoto.cropData && store.cropper) {
+        store.cropper.setData(newPhoto.cropData)
+      }
+
+      if (newPhoto.aspectRatio) {
+        cropAspectRatio.value = newPhoto.aspectRatio
+      }
     }
   }, { immediate: true, flush: 'post' })
 

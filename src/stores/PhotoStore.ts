@@ -11,6 +11,8 @@ export const usePhotoStore = defineStore('photo', {
     isExporting: false,
     activePhotoId: null,
     exportQuality: 80,
+    exportSize: 'original',
+    exportFormat: 'jpeg',
     cropper: null,
   }),
 
@@ -105,6 +107,9 @@ export const usePhotoStore = defineStore('photo', {
       this.isExporting = true
 
       const zip = new JSZip()
+      const maxWidth = this.exportSize === 'original' ? undefined : Number(this.exportSize)
+      const mimeType = `image/${this.exportFormat}`
+      const extension = this.exportFormat === 'jpeg' ? 'jpg' : this.exportFormat
 
       for (const photo of this.photos) {
         const file = await new Promise<File>((resolve, reject) => {
@@ -123,9 +128,10 @@ export const usePhotoStore = defineStore('photo', {
 
           new Compressor(blob, {
             quality: this.exportQuality / 100,
-            mimeType: 'image/jpeg',
+            mimeType,
+            maxWidth,
             success: result => {
-              const f = new File([result], `photo-${photo.id}.jpg`, { type: result.type })
+              const f = new File([result], `photo-${photo.id}.${extension}`, { type: result.type })
               this.setFileSize(photo.id, f.size)
               resolve(f)
             },
@@ -134,11 +140,15 @@ export const usePhotoStore = defineStore('photo', {
             },
           })
         })
-        zip.file(`photo-${photo.id}.jpg`, file)
+        zip.file(`photo-${photo.id}.${extension}`, file)
       }
 
       const content = await zip.generateAsync({ type: 'blob' })
-      saveAs(content, 'photos.zip')
+
+      const timestamp = Date.now()
+      const filename = `${timestamp}_photos_quality_${this.exportQuality}_size_${this.exportSize}_format_${this.exportFormat}.zip`
+
+      saveAs(content, filename)
 
       this.isExporting = false
     },

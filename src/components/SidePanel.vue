@@ -5,13 +5,10 @@
   import EditControls from './EditControls.vue'
 
   const photoStore = usePhotoStore()
-  const { photos, isExporting, exportQuality } = storeToRefs(photoStore)
+  const { photos, isExporting, exportQuality, exportSize, exportFormat } = storeToRefs(photoStore)
 
   const drawerOpen = ref(true)
-
-  // Export settings
-  const exportFormat = ref('jpeg')
-  const exportSize = ref('original')
+  const exportPanel = ref([0]) // Keep export panel open by default
 
   // Computed values
   const totalPhotos = computed(() => photos.value.length)
@@ -81,7 +78,7 @@
         <EditControls />
       </div>
 
-      <v-expansion-panels>
+      <v-expansion-panels v-model="exportPanel" multiple>
         <v-expansion-panel>
           <v-expansion-panel-title class="font-weight-medium">Export Settings</v-expansion-panel-title>
 
@@ -142,7 +139,7 @@
               />
             </div>
 
-            <!-- Export Options -->
+            <!-- Export Options
             <div>
               <v-label class="text-subtitle-2">Options</v-label>
               <div>
@@ -162,7 +159,7 @@
                   label="Create backup"
                 />
               </div>
-            </div>
+            </div> -->
 
             <!-- Export Actions
             <div class="space-y-2">

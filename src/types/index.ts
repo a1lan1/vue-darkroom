@@ -33,5 +33,7 @@ export interface PhotoStoreState {
   isExporting: boolean
   activePhotoId: string | null
   exportQuality: number // 0–100
+  exportSize: string // 'original' | '1920' | '1280' | '800'
+  exportFormat: string // 'jpeg' | 'png' | 'webp'
   cropper: Cropper | null
 }

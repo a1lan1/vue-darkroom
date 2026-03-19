@@ -101,7 +101,7 @@
   <v-app-bar color="grey-darken-4" density="compact" elevation="2">
     <v-toolbar-title class="font-weight-bold">
       <v-icon class="mr-1" size="small">mdi-camera</v-icon>
-      VueDarkRoom
+      DarkRoom
     </v-toolbar-title>
 
     <v-spacer />

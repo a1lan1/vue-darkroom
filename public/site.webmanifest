@@ -1,6 +1,6 @@
 {
-  "name": "VueDarkRoom",
-  "short_name": "VueDarkRoom",
+  "name": "DarkRoom",
+  "short_name": "DarkRoom",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

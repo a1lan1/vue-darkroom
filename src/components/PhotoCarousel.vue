@@ -25,7 +25,7 @@
         v-for="(photo, index) in photos"
         :key="index"
       >
-        <v-badge offset-x="10" offset-y="10">
+        <v-badge offset-x="10" offset-y="14">
           <template #badge>
             <v-icon
               icon="mdi-close"

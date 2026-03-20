@@ -1,19 +1,18 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
+  import { useAppStore } from '@/stores/AppStore'
   import { usePhotoStore } from '@/stores/PhotoStore'
-
-  const emit = defineEmits<{
-    'import': []
-    'show-help': []
-  }>()
 
   const photoStore = usePhotoStore()
   const { photos } = storeToRefs(photoStore)
   const { exportAll } = photoStore
+
+  const appStore = useAppStore()
+  const { toggleHelp, triggerImport } = appStore
 </script>
 
 <template>
-  <v-app-bar color="grey-darken-4" density="compact" elevation="2">
+  <v-app-bar app color="grey-darken-4" density="compact" elevation="2">
     <v-toolbar-title class="font-weight-bold">
       <v-icon class="mr-1" size="small">mdi-camera</v-icon>
       DarkRoom
@@ -27,7 +26,7 @@
       elevation="5"
       prepend-icon="mdi-folder-open"
       variant="text"
-      @click="emit('import')"
+      @click="triggerImport"
     >
       Import Photos
     </v-btn>
@@ -49,7 +48,7 @@
     <v-btn
       icon="mdi-help-circle"
       variant="text"
-      @click="emit('show-help')"
+      @click="toggleHelp()"
     />
   </v-app-bar>
 </template>

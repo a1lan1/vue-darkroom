@@ -1,19 +1,23 @@
 <script setup lang="ts">
-  import { onUnmounted, ref } from 'vue'
+  import { storeToRefs } from 'pinia'
+  import { onUnmounted, ref, watch } from 'vue'
+  import DragOverlay from '@/components/DragOverlay.vue'
+  import FileImporter from '@/components/FileImporter.vue'
   import HelpDialog from '@/components/HelpDialog.vue'
   import PhotoEditor from '@/components/PhotoEditor.vue'
-  import TheToolbar from '@/components/TheToolbar.vue'
   import { useDragDrop } from '@/composables/useDragDrop'
   import { useEditorHotkeys } from '@/composables/useEditorHotkeys'
+  import { useAppStore } from '@/stores/AppStore'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
   const photoStore = usePhotoStore()
   const { addPhotoFromFile, destroyCropper } = photoStore
 
-  const showHelp = ref(false)
-  const fileInput = ref<HTMLInputElement>()
+  const appStore = useAppStore()
+  const { importTrigger } = storeToRefs(appStore)
 
-  // Logic
+  const fileImporter = ref<InstanceType<typeof FileImporter>>()
+
   useEditorHotkeys()
 
   const { isDragOver, dragEvents } = useDragDrop(files => {
@@ -22,77 +26,40 @@
     }
   })
 
-  function handleFileSelect (e: Event) {
-    const target = e.target as HTMLInputElement
-    const files = Array.from(target.files || [])
-
-    for (const file of files) {
-      addPhotoFromFile(file)
-    }
-
-    target.value = ''
-  }
+  watch(importTrigger, () => {
+    fileImporter.value?.triggerImport()
+  })
 
   onUnmounted(destroyCropper)
 </script>
 
 <template>
-  <TheToolbar
-    @import="() => fileInput?.click()"
-    @show-help="showHelp = true"
-  />
+  <FileImporter ref="fileImporter" />
 
-  <!-- Hidden file input -->
-  <input
-    ref="fileInput"
-    accept="image/*"
-    class="d-none"
-    multiple
-    type="file"
-    @change="handleFileSelect"
+  <div
+    class="editor-area"
+    v-bind="dragEvents"
   >
+    <DragOverlay :show="isDragOver" />
+    <PhotoEditor />
+  </div>
 
-  <!-- Main Content -->
-  <v-main class="bg-black text-white pa-0 h-100">
-    <div
-      class="h-100 d-flex align-center justify-center"
-      v-bind="dragEvents"
-    >
-      <!-- Drag Indicator -->
-      <div
-        v-if="isDragOver"
-        class="position-absolute inset-0 bg-opacity-10 pointer-events-none z-10 d-flex align-center justify-center"
-      >
-        <div class="text-center bg-grey-darken-4 pa-8 rounded-lg">
-          <v-icon class="mb-4" color="primary" size="64">mdi-cloud-upload</v-icon>
-          <h2 class="text-h4 text-primary font-weight-bold mb-2">Drop Images Here</h2>
-          <p class="text-body-1 text-grey">Release to import your photos</p>
-          <v-progress-circular
-            class="mt-4"
-            color="primary"
-            indeterminate
-            size="32"
-          />
-        </div>
-      </div>
-
-      <PhotoEditor />
-    </div>
-  </v-main>
-
-  <HelpDialog v-model="showHelp" />
+  <HelpDialog />
 </template>
 
 <style lang="scss" scoped>
-.bg-opacity-10 {
-  background-color: rgba(var(--v-theme-primary), 0.1);
-}
-
-.pointer-events-none {
-  pointer-events: none;
-}
-
-.z-10 {
-  z-index: 10;
+.editor-area {
+  position: fixed;
+  top: var(--v-layout-top);
+  left: var(--v-layout-left);
+  right: var(--v-layout-right);
+  bottom: var(--v-layout-bottom);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: black;
+  color: white;
+  z-index: 1; /* Ensure it's above v-main background but below overlays */
 }
 </style>

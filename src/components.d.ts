@@ -8,7 +8,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    DragOverlay: typeof import('./components/DragOverlay.vue')['default']
     EditControls: typeof import('./components/EditControls.vue')['default']
+    FileImporter: typeof import('./components/FileImporter.vue')['default']
     HelpDialog: typeof import('./components/HelpDialog.vue')['default']
     PhotoCarousel: typeof import('./components/PhotoCarousel.vue')['default']
     PhotoEditor: typeof import('./components/PhotoEditor.vue')['default']

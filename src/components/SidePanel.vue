@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
   import { computed, ref } from 'vue'
+  import EditControls from '@/components/EditControls.vue'
   import { usePhotoStore } from '@/stores/PhotoStore'
-  import EditControls from './EditControls.vue'
 
   const photoStore = usePhotoStore()
   const { photos, isExporting, exportQuality, exportSize, exportFormat } = storeToRefs(photoStore)
@@ -12,14 +12,27 @@
 
   // Computed values
   const totalPhotos = computed(() => photos.value.length)
-  const editedPhotos = computed(() => photos.value.filter(p => p.editedSrc && p.editedSrc !== p.src).length)
+
+  const editedPhotos = computed(() => photos.value.filter(p => {
+    const hasCrop = !!p.previewSrc || !!p.cropData
+    const hasColorChanges = p.brightness !== 0
+      || p.contrast !== 0
+      || p.saturation !== 0
+      || p.sepia !== 0
+      || p.invert !== 0
+      || p.grayscale !== 0
+      || p.blur !== 0
+
+    return hasCrop || hasColorChanges
+  }).length)
+
   const totalFileSize = computed(() => {
     return photos.value.reduce((total, photo) => total + (photo.fileSize || 0), 0)
   })
 
   const formatFileSize = (bytes: number) => {
     if (!bytes) {
-      return 0
+      return '0 B'
     }
 
     const sizes = ['B', 'KB', 'MB', 'GB']
@@ -64,7 +77,7 @@
             <span>Edited:</span>
             <span class="font-weight-medium text-success pl-1">{{ editedPhotos }}</span>
           </div>
-          <div class="d-flex justify-space-between text-caption">
+          <div v-if="totalFileSize > 0" class="d-flex justify-space-between text-caption">
             <span>Total Size:</span>
             <span class="font-weight-medium pl-1">{{ formatFileSize(totalFileSize) }}</span>
           </div>
@@ -77,6 +90,8 @@
       <div class="flex-grow-1 overflow-y-auto">
         <EditControls />
       </div>
+
+      <v-divider />
 
       <v-expansion-panels v-model="exportPanel" multiple>
         <v-expansion-panel>
@@ -138,53 +153,6 @@
                 variant="outlined"
               />
             </div>
-
-            <!-- Export Options
-            <div>
-              <v-label class="text-subtitle-2">Options</v-label>
-              <div>
-                <v-checkbox
-                  density="compact"
-                  hide-details
-                  label="Include metadata"
-                />
-                <v-checkbox
-                  density="compact"
-                  hide-details
-                  label="Optimize for web"
-                />
-                <v-checkbox
-                  density="compact"
-                  hide-details
-                  label="Create backup"
-                />
-              </div>
-            </div> -->
-
-            <!-- Export Actions
-            <div class="space-y-2">
-              <v-btn
-                block
-                color="primary"
-                :disabled="photos.length === 0"
-                :loading="isExporting"
-                prepend-icon="mdi-download"
-                size="small"
-                @click="exportAll"
-              >
-                {{ isExporting ? 'Exporting...' : 'Export All Photos' }}
-              </v-btn>
-              <v-btn
-                block
-                :disabled="!activePhoto"
-                prepend-icon="mdi-download-single"
-                size="small"
-                variant="outlined"
-                @click="exportSelected"
-              >
-                Export Selected
-              </v-btn>
-            </div>-->
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
@@ -200,3 +168,10 @@
     </v-container>
   </v-navigation-drawer>
 </template>
+
+<style lang="scss" scoped>
+:deep(.v-expansion-panel--active > .v-expansion-panel-title:not(.v-expansion-panel-title--static)) {
+  min-height: 10px !important;
+  max-height: 18px !important;
+}
+</style>

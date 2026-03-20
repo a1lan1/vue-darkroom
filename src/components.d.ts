@@ -9,10 +9,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     EditControls: typeof import('./components/EditControls.vue')['default']
+    HelpDialog: typeof import('./components/HelpDialog.vue')['default']
     PhotoCarousel: typeof import('./components/PhotoCarousel.vue')['default']
     PhotoEditor: typeof import('./components/PhotoEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SidePanel: typeof import('./components/SidePanel.vue')['default']
+    TheToolbar: typeof import('./components/TheToolbar.vue')['default']
   }
 }

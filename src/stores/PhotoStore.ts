@@ -60,9 +60,9 @@ export const usePhotoStore = defineStore('photo', {
 
       reader.readAsDataURL(file)
     },
-    setEditedSrc (editedSrc: string) {
+    setPreviewSrc (previewSrc: string) {
       if (this.activePhoto) {
-        this.activePhoto.editedSrc = editedSrc
+        this.activePhoto.previewSrc = previewSrc
       }
     },
     setFileSize (id: string, size: number) {
@@ -72,19 +72,16 @@ export const usePhotoStore = defineStore('photo', {
       }
     },
     setActive (id: string) {
+      // Save current crop state if active
       if (this.cropper && this.activePhoto) {
         this.activePhoto.cropData = this.cropper.getData()
-        const container = this.cropper.getContainerData()
-        this.activePhoto.aspectRatio = container.width / container.height
       }
-
       this.activePhotoId = id
     },
     removePhoto (id: string) {
       const index = this.photos.findIndex(p => p.id === id)
       if (index !== -1) {
         this.photos.splice(index, 1)
-        // If we removed the active photo, set the next one as active
         if (this.activePhotoId === id) {
           this.activePhotoId = this.photos.length > 0 ? this.photos[Math.min(index, this.photos.length - 1)].id : null
         }
@@ -97,6 +94,24 @@ export const usePhotoStore = defineStore('photo', {
       if (this.cropper) {
         this.cropper.destroy()
         this.cropper = null
+      }
+    },
+    resetCrop () {
+      if (this.activePhoto) {
+        this.activePhoto.previewSrc = undefined
+        this.activePhoto.cropData = undefined
+        this.activePhoto.aspectRatio = undefined
+      }
+    },
+    resetColorCorrection () {
+      if (this.activePhoto) {
+        this.activePhoto.brightness = 0
+        this.activePhoto.contrast = 0
+        this.activePhoto.saturation = 0
+        this.activePhoto.sepia = 0
+        this.activePhoto.invert = 0
+        this.activePhoto.grayscale = 0
+        this.activePhoto.blur = 0
       }
     },
     async exportAll () {
@@ -112,22 +127,55 @@ export const usePhotoStore = defineStore('photo', {
       const extension = this.exportFormat === 'jpeg' ? 'jpg' : this.exportFormat
 
       for (const photo of this.photos) {
-        const file = await new Promise<File>((resolve, reject) => {
-          // Convert base64 string to Blob
-          const base64Data = photo.editedSrc || photo.src
-          const base64DataPart = base64Data.split(',')[1]
-          const byteCharacters = atob(base64DataPart)
-          const byteNumbers = new Uint8Array(byteCharacters.length)
+        // Create a temporary canvas to apply filters
+        const tempCanvas = document.createElement('canvas')
+        const tempCtx = tempCanvas.getContext('2d')
+        const img = new Image()
 
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.codePointAt(i) || 0
+        // Use previewSrc (cropped) or src (original)
+        img.src = photo.previewSrc || photo.src
+
+        await new Promise<void>(resolve => {
+          if (img.complete) {
+            resolve()
+          } else {
+            img.addEventListener('load', () => resolve())
           }
+        })
 
-          const byteArray = new Uint8Array(byteNumbers)
-          const blob = new Blob([byteArray], { type: 'image/jpeg' })
+        if (!tempCtx) {
+          continue
+        }
 
+        tempCanvas.width = img.naturalWidth
+        tempCanvas.height = img.naturalHeight
+
+        // Construct filter string for this specific photo
+        const filters = [
+          `brightness(${100 + photo.brightness}%)`,
+          `contrast(${100 + photo.contrast}%)`,
+          `saturate(${100 + photo.saturation}%)`,
+          `sepia(${Math.abs(photo.sepia)}%)`,
+          `grayscale(${Math.abs(photo.grayscale)}%)`,
+          `invert(${Math.max(0, Math.min(100, photo.invert))}%)`,
+          `blur(${Math.max(0, Math.abs(photo.blur) / 10)}px)`,
+        ].join(' ')
+
+        tempCtx.filter = filters
+        tempCtx.drawImage(img, 0, 0)
+
+        // Convert canvas to blob
+        const blob = await new Promise<Blob | null>(resolve =>
+          tempCanvas.toBlob(resolve, mimeType, this.exportQuality / 100),
+        )
+
+        if (!blob) {
+          continue
+        }
+
+        const file = await new Promise<File>((resolve, reject) => {
           new Compressor(blob, {
-            quality: this.exportQuality / 100,
+            quality: this.exportQuality / 100, // Compressor also takes quality, but we already applied it on canvas export mostly. It's fine to double check.
             mimeType,
             maxWidth,
             success: result => {

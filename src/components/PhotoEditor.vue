@@ -1,25 +1,37 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
+  import { computed } from 'vue'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
   import { usePhotoStore } from '@/stores/PhotoStore'
 
-  const { imgRef } = usePhotoEditor()
+  const { imgRef, isCropping } = usePhotoEditor()
   const photoStore = usePhotoStore()
   const { activePhoto, imageFilter } = storeToRefs(photoStore)
+
+  const imageSource = computed(() => {
+    if (!activePhoto.value) return ''
+    // When cropping, always use the original source
+    if (isCropping.value) {
+      return activePhoto.value.src
+    }
+    // Otherwise, show the cropped preview if it exists
+    return activePhoto.value.previewSrc || activePhoto.value.src
+  })
 </script>
 
 <template>
-  <div class="fill-height d-flex align-center justify-center">
+  <div class="w-100 h-100 d-flex align-center justify-center pa-4">
     <div
       v-if="activePhoto"
-      class="h-75 d-flex align-center justify-center bg-black pa-5"
+      class="w-100 h-100 d-flex align-center justify-center position-relative"
     >
       <img
         ref="imgRef"
         alt="photo"
-        class="h-screen"
+        class="image-fit"
         draggable="false"
-        :src="activePhoto.editedSrc || activePhoto.src"
+        :src="imageSource"
+        :style="{ filter: imageFilter }"
         @contextmenu.prevent
       >
     </div>
@@ -32,7 +44,15 @@
 </template>
 
 <style lang="scss" scoped>
-::v-deep(.cropper-bg) {
+.image-fit {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+// This is for applying filters when cropper is active
+:deep(.cropper-bg) {
   filter: v-bind(imageFilter);
 }
 </style>

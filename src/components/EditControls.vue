@@ -8,13 +8,15 @@
   const { activePhoto } = storeToRefs(photoStore)
 
   const {
+    isCropping,
     cropAspectRatio,
     aspectRatios,
     rotateFine,
-    crop,
+    startCropping,
+    applyCrop,
+    cancelCrop,
     resetCrop,
     resetColorCorrection,
-    applyChanges,
     setAspectRatio,
   } = usePhotoEditor()
 
@@ -23,6 +25,21 @@
   useHotkey(']', () => rotateFine(-90))
   useHotkey('\'', () => rotateFine(1))
   useHotkey('\\', () => rotateFine(-1))
+  useHotkey('c', () => {
+    if (!isCropping.value) {
+      startCropping()
+    }
+  })
+  useHotkey('Enter', () => {
+    if (isCropping.value) {
+      applyCrop()
+    }
+  })
+  useHotkey('Esc', () => {
+    if (isCropping.value) {
+      cancelCrop()
+    }
+  })
 </script>
 
 <template>
@@ -33,7 +50,45 @@
   >
     <v-list-item class="px-0">
       <template #title>
-        <span class="text-h6">Crop & Rotate</span>
+        <div class="d-flex justify-space-between align-center">
+          <span class="text-h6">Crop</span>
+
+          <div class="d-flex justify-center ga-2">
+            <template v-if="isCropping">
+              <v-btn
+                color="success"
+                density="comfortable"
+                prepend-icon="mdi-check"
+                size="small"
+                variant="elevated"
+                @click="applyCrop"
+              >
+                Apply
+              </v-btn>
+              <v-btn
+                color="grey"
+                density="comfortable"
+                prepend-icon="mdi-close"
+                size="small"
+                variant="elevated"
+                @click="cancelCrop"
+              >
+                Cancel
+              </v-btn>
+            </template>
+            <template v-else>
+              <v-icon-btn
+                v-tooltip="'Crop'"
+                color="primary"
+                density="compact"
+                icon="mdi-crop"
+                size="small"
+                variant="elevated"
+                @click="startCropping"
+              />
+            </template>
+          </div>
+        </div>
       </template>
 
       <!-- Aspect Ratio -->
@@ -58,6 +113,14 @@
           </v-btn>
         </v-btn-toggle>
       </div>
+    </v-list-item>
+
+    <v-divider class="mb-2" />
+
+    <v-list-item class="px-0">
+      <template #title>
+        <span class="text-h6">Rotate</span>
+      </template>
 
       <!-- Rotate Controls -->
       <v-btn-group
@@ -106,29 +169,9 @@
           Reset
         </v-btn>
       </v-btn-group>
-
-      <div class="d-flex justify-space-around mt-2">
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-crop"
-          size="x-small"
-          @click="crop"
-        >
-          Apply Crop
-        </v-btn>
-
-        <v-btn
-          color="success"
-          prepend-icon="mdi-check"
-          size="x-small"
-          @click="applyChanges"
-        >
-          Apply Changes
-        </v-btn>
-      </div>
     </v-list-item>
 
-    <v-divider class="mt-4 mb-3" />
+    <v-divider class="mt-2 mb-2" />
 
     <v-list-item class="px-0">
       <template #title>

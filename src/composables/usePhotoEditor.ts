@@ -47,6 +47,7 @@ export function usePhotoEditor () {
       aspectRatio: cropAspectRatio.value,
       viewMode: 1,
       autoCrop: true,
+      zoomOnWheel: false,
       ready () {
         // If we have saved crop data, restore it
         if (store.activePhoto?.cropData) {

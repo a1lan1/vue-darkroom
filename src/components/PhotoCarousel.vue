@@ -1,35 +1,38 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
-  import { usePhotoStore } from '@/stores/PhotoStore'
+  import { isPhotoEdited, usePhotoStore } from '@/stores/photoStore'
+  import { formatBytes } from '@/utils/formatBytes'
 
   const photoStore = usePhotoStore()
   const { setActive, removePhoto } = photoStore
   const { photos, activePhotoId } = storeToRefs(photoStore)
-
-  const formatFileSize = (bytes: number | undefined): string => {
-    if (!bytes) return 'N/A'
-    const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(1024))
-    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`
-  }
-
-  const hasChanges = (photo: any): boolean => {
-    return Boolean(photo.editedSrc && photo.editedSrc !== photo.src)
-  }
 </script>
 
 <template>
-  <v-footer v-if="photos.length > 0" app class="px-0" height="100">
+  <v-footer
+    v-if="!photoStore.isEmpty"
+    app
+    class="px-0"
+    height="100"
+  >
     <v-slide-group show-arrows>
       <v-slide-group-item
-        v-for="(photo, index) in photos"
-        :key="index"
+        v-for="photo in photos"
+        :key="photo.id"
+        :aria-current="photo.id === activePhotoId"
+        role="button"
+        :tabindex="0"
       >
         <v-badge offset-x="10" offset-y="14">
           <template #badge>
-            <v-icon
+            <v-btn
+              :aria-label="`Remove ${photo.name}`"
+              class="remove-button"
+              density="compact"
               icon="mdi-close"
-              @click="removePhoto(photo.id)"
+              size="x-small"
+              variant="elevated"
+              @click.stop="removePhoto(photo.id)"
             />
           </template>
 
@@ -37,28 +40,37 @@
             class="my-2 mx-1 d-flex align-center"
             :class="{ 'border-md border-primary': photo.id === activePhotoId }"
             height="80"
+            :tabindex="-1"
             width="100"
             @click="setActive(photo.id)"
+            @keydown.enter.prevent="setActive(photo.id)"
+            @keydown.space.prevent="setActive(photo.id)"
           >
             <v-img
               cover
-              :src="photo.src"
+              :src="photo.thumbnailSrc ?? photo.src"
               @contextmenu.prevent
             >
               <v-chip
-                v-if="photo.fileSize"
+                v-if="photo.exportedSize"
                 class="text-caption font-weight-medium"
                 color="black"
                 size="x-small"
                 variant="elevated"
               >
-                {{ formatFileSize(photo.fileSize) }}
+                {{ formatBytes(photo.exportedSize) }}
               </v-chip>
 
-              <!-- Edit indicator -->
-              <div v-if="hasChanges(photo)" class="position-absolute top-0 right-0 pa-0-5">
-                <v-icon color="success" size="12">mdi-check-circle</v-icon>
-              </div>
+              <v-icon
+                v-if="isPhotoEdited(photo)"
+                v-tooltip="'Edited'"
+                aria-label="Edited"
+                class="edited-indicator"
+                color="success"
+                size="14"
+              >
+                mdi-check-circle
+              </v-icon>
             </v-img>
           </v-card>
         </v-badge>
@@ -66,3 +78,29 @@
     </v-slide-group>
   </v-footer>
 </template>
+
+<style lang="scss" scoped>
+.remove-button {
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+}
+
+// Keyboard users must always be able to reach the remove control.
+:deep(.v-slide-group-item):focus-within .remove-button {
+  opacity: 1;
+}
+
+:deep(.v-slide-group-item):hover .remove-button {
+  opacity: 1;
+}
+
+:deep(.remove-button:focus-visible) {
+  opacity: 1;
+}
+
+.edited-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+</style>

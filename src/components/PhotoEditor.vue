@@ -1,22 +1,19 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
-  import { computed } from 'vue'
+  import { ref, watch } from 'vue'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
-  import { usePhotoStore } from '@/stores/PhotoStore'
+  import { usePhotoStore } from '@/stores/photoStore'
 
-  const { imgRef, isCropping } = usePhotoEditor()
   const photoStore = usePhotoStore()
   const { activePhoto, imageFilter } = storeToRefs(photoStore)
 
-  const imageSource = computed(() => {
-    if (!activePhoto.value) return ''
-    // When cropping, always use the original source
-    if (isCropping.value) {
-      return activePhoto.value.src
-    }
-    // Otherwise, show the cropped preview if it exists
-    return activePhoto.value.previewSrc || activePhoto.value.src
-  })
+  const { registerImage, displaySrc } = usePhotoEditor()
+
+  const imageRef = ref<HTMLImageElement | null>(null)
+
+  // `flush: 'post'` guarantees the element is in the DOM before the cropper
+  // receives it; `null` releases it on unmount.
+  watch(imageRef, registerImage, { immediate: true, flush: 'post' })
 </script>
 
 <template>
@@ -26,16 +23,19 @@
       class="w-100 h-100 d-flex align-center justify-center position-relative"
     >
       <img
-        ref="imgRef"
-        alt="photo"
+        ref="imageRef"
+        :alt="`Editing ${activePhoto.name}`"
         class="image-fit"
         draggable="false"
-        :src="imageSource"
+        :src="displaySrc"
         :style="{ filter: imageFilter }"
         @contextmenu.prevent
       >
     </div>
-    <div v-else class="text-center">
+    <div
+      v-else
+      class="text-center"
+    >
       <v-icon class="mb-4" color="grey-darken-2" size="64">mdi-image-multiple-outline</v-icon>
       <h2 class="text-h5 mb-2">No Photo Selected</h2>
       <p class="text-body-1 mb-4">Drag and drop an image here or click the button above</p>
@@ -51,7 +51,7 @@
   object-fit: contain;
 }
 
-// This is for applying filters when cropper is active
+// Keeps the cropper backdrop consistent with the filtered preview.
 :deep(.cropper-bg) {
   filter: v-bind(imageFilter);
 }

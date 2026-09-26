@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
   import { computed } from 'vue'
-  import { useAppStore } from '@/stores/AppStore'
+  import { useAppStore } from '@/stores/appStore'
 
   const appStore = useAppStore()
   const { showHelp } = storeToRefs(appStore)
@@ -54,21 +54,14 @@
           <v-chip class="mr-2" color="surface-variant" label size="small">[</v-chip>
           <span class="mr-2">/</span>
           <v-chip class="mr-2" color="surface-variant" label size="small">]</v-chip>
-          <span>Rotate 90° left/right</span>
+          <span>Rotate 90° counter-clockwise / clockwise</span>
         </div>
 
         <div class="d-flex align-center mb-2">
           <v-chip class="mr-2" color="surface-variant" label size="small">'</v-chip>
           <span class="mr-2">/</span>
           <v-chip class="mr-2" color="surface-variant" label size="small">\</v-chip>
-          <span>Rotate 1° left/right</span>
-        </div>
-
-        <div class="d-flex align-center mb-2">
-          <v-chip class="mr-2" color="surface-variant" label size="small">'</v-chip>
-          <span class="mr-2">/</span>
-          <v-chip class="mr-2" color="surface-variant" label size="small">\</v-chip>
-          <span>Rotate 1° left/right</span>
+          <span>Rotate 1° counter-clockwise / clockwise</span>
         </div>
 
         <h3 class="text-h6 mb-1">Cropper</h3>

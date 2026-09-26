@@ -1,10 +1,10 @@
 # 📸 Vue DarkRoom
 
-![Vue 3](https://img.shields.io/badge/Vue-3.3+-4FC08D?style=flat&logo=vue.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-4.0+-646CFF?style=flat&logo=vite&logoColor=white)
-![Vuetify](https://img.shields.io/badge/Vuetify-3.3+-1867C0?style=flat&logo=vuetify&logoColor=white)
-![Pinia](https://img.shields.io/badge/Pinia-2.1+-FFE46B?style=flat&logo=pinia&logoColor=black)
+![Vue 3](https://img.shields.io/badge/Vue-3.5+-4FC08D?style=flat&logo=vue.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-3178C6?style=flat&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6.3+-646CFF?style=flat&logo=vite&logoColor=white)
+![Vuetify](https://img.shields.io/badge/Vuetify-3.9+-1867C0?style=flat&logo=vuetify&logoColor=white)
+![Pinia](https://img.shields.io/badge/Pinia-3.0+-FFE46B?style=flat&logo=pinia&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
 > Photo editor inspired by Adobe Lightroom.
@@ -14,7 +14,7 @@
 ## ✨ Features
 
 ### 🛠 Powerful Editing Tools
-- **Non-Destructive Editing**: All changes (crop, colors) are applied virtually and only rendered upon export.
+- **Non-Destructive Editing**: The original file is never re-encoded. Crops and colour corrections are re-rendered from the untouched source on preview and on export, so photos can be re-cropped any number of times without quality loss.
 - **Crop & Rotate**: 
   - Preset aspect ratios (1:1, 4:3, 16:9, etc.)
   - Free crop
@@ -40,8 +40,8 @@ Boost your productivity with these built-in hotkeys:
 |----------------|--------|
 | `Alt` + `←` / `→` | Navigate between photos |
 | `Backspace` | Remove current photo |
-| `[` / `]` | Rotate 90° Left / Right |
-| `'` / `\` | Fine Rotate 1° Left / Right |
+| `[` / `]` | Rotate 90° counter-clockwise / clockwise |
+| `'` / `\` | Rotate 1° counter-clockwise / clockwise |
 | `C` | Activate cropper |
 | `Enter` | Apply cropper |
 | `Esc` | Cancel cropper |
@@ -58,10 +58,11 @@ This project is built using the latest Vue ecosystem tools:
 - **UI Component Library**: [Vuetify 3](https://vuetifyjs.com/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Image Processing**:
-  - [Cropper.js](https://github.com/fengyuanchen/cropperjs) for cropping logic
-  - [Compressor.js](https://github.com/fengyuanchen/compressorjs) for client-side compression
+  - [Cropper.js](https://github.com/fengyuanchen/cropperjs) for the interactive crop UI
+  - Canvas 2D for full-resolution rendering of the crop and colour filters
   - [JSZip](https://stuk.github.io/jszip/) for bundling files
   - [FileSaver.js](https://github.com/eligrey/FileSaver.js) for downloading
+  - [Sentry](https://sentry.io/) (optional) for production error reporting
 
 ---
 
@@ -69,22 +70,29 @@ This project is built using the latest Vue ecosystem tools:
 
 ```bash
 src/
-├── components/        # UI Components (Editor, Toolbar, SidePanel, etc.)
-├── composables/       # Shared logic (Drag&Drop, Hotkeys, Editor logic)
-├── layouts/           # App layouts (Default layout with global providers)
-├── pages/             # Route views (Main index page)
-├── stores/            # Pinia stores (PhotoStore, AppStore)
-├── types/             # TypeScript interfaces and types
+├── components/        # UI components (editor view, toolbar, side panel, filmstrip)
+├── composables/       # Shared logic: photo editor controller, drag & drop, hotkeys
+├── layouts/           # App layouts; owns the single photo editor controller
+├── pages/             # Route views
+├── plugins/           # Plugin registration (Vuetify, router, analytics)
+├── services/          # Framework-free logic: import, crop rendering, export
+├── stores/            # Pinia stores (photoStore, appStore)
+├── types/             # Shared TypeScript types
+├── utils/             # Pure helpers (filter building, formatting, clamping)
 └── App.vue            # Root component
 ```
+
+The editor controller is provided by the layout because the crop controls and
+the editor view live in sibling subtrees. It is created exactly once per
+layout, so the cropper and the preview stay in sync.
 
 ---
 
 ## 🏁 Getting Started
 
 ### Prerequisites
-- Node.js (v16+)
-- Yarn
+- Node.js 22+
+- Yarn 1.x
 
 ### Installation
 
@@ -109,11 +117,20 @@ src/
    yarn build
    ```
 
-5. **Run linters**
+5. **Run all checks** (lint, types, tests)
    ```bash
-   yarn lint
-   yarn type-check
+   yarn check
    ```
+
+### Environment
+
+Copy `.env.example` to `.env`. Every variable is optional: the app runs fully
+without any of them.
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_SENTRY_DSN` | Enables Sentry in production builds only |
+| `VITE_FIREBASE_*` | Enables Firebase Analytics; loaded lazily and only in production |
 
 ---
 

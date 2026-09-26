@@ -1,14 +1,24 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
-  import { useAppStore } from '@/stores/AppStore'
-  import { usePhotoStore } from '@/stores/PhotoStore'
+  import { useAppStore } from '@/stores/appStore'
+  import { usePhotoStore } from '@/stores/photoStore'
 
   const photoStore = usePhotoStore()
-  const { photos } = storeToRefs(photoStore)
+  const { isExporting, exportProgress } = storeToRefs(photoStore)
   const { exportAll } = photoStore
 
   const appStore = useAppStore()
-  const { toggleHelp, triggerImport } = appStore
+  const { triggerImport } = appStore
+
+  async function handleExport (): Promise<void> {
+    try {
+      await exportAll()
+      appStore.notify(`Exported ${exportProgress.value?.total ?? 0} photo(s)`)
+    } catch (error) {
+      console.error('[export] failed', error)
+      appStore.notify('Export failed. Please try again.')
+    }
+  }
 </script>
 
 <template>
@@ -32,23 +42,25 @@
     </v-btn>
 
     <v-btn
-      v-if="photos.length > 0"
+      v-if="!photoStore.isEmpty"
       color="success"
       density="compact"
+      :disabled="isExporting"
       elevation="5"
       prepend-icon="mdi-download"
       variant="text"
-      @click="exportAll"
+      @click="handleExport"
     >
-      Export All
+      {{ isExporting ? 'Exporting…' : 'Export All' }}
     </v-btn>
 
     <v-divider class="mx-2" vertical />
 
     <v-btn
+      aria-label="Open keyboard shortcuts and help"
       icon="mdi-help-circle"
       variant="text"
-      @click="toggleHelp()"
+      @click="appStore.toggleHelp()"
     />
   </v-app-bar>
 </template>

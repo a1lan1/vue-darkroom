@@ -1,49 +1,58 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
-  import { useHotkey } from 'vuetify/framework'
+  import { useHotkey } from 'vuetify'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
-  import { usePhotoStore } from '@/stores/PhotoStore'
+  import { guardHotkey } from '@/composables/useSafeHotkey'
+  import { usePhotoStore } from '@/stores/photoStore'
 
   const photoStore = usePhotoStore()
   const { activePhoto } = storeToRefs(photoStore)
 
   const {
     isCropping,
-    cropAspectRatio,
     aspectRatios,
-    rotateFine,
+    cropAspectRatio,
     startCropping,
     applyCrop,
     cancelCrop,
     resetCrop,
     resetColorCorrection,
-    setAspectRatio,
+    rotate,
   } = usePhotoEditor()
 
-  // Hotkeys
-  useHotkey('[', () => rotateFine(90))
-  useHotkey(']', () => rotateFine(-90))
-  useHotkey('\'', () => rotateFine(1))
-  useHotkey('\\', () => rotateFine(-1))
-  useHotkey('c', () => {
-    if (!isCropping.value) {
-      startCropping()
-    }
-  })
-  useHotkey('Enter', () => {
+  useHotkey('[', guardHotkey(() => void rotate(90)))
+  useHotkey(']', guardHotkey(() => void rotate(-90)))
+  useHotkey('\'', guardHotkey(() => void rotate(1)))
+  useHotkey('\\', guardHotkey(() => void rotate(-1)))
+  useHotkey('c', guardHotkey(() => void startCropping()))
+  useHotkey('enter', guardHotkey(() => {
     if (isCropping.value) {
       applyCrop()
     }
-  })
-  useHotkey('Esc', () => {
+  }))
+  useHotkey('esc', guardHotkey(() => {
     if (isCropping.value) {
       cancelCrop()
     }
-  })
+  }))
+
+  /**
+   * Slider definitions live in one place so the ranges stay in sync with the
+   * clamp bounds used by `buildImageFilter`. `sepia`, `invert`, `grayscale` and
+   * `blur` are one-sided effects and must not accept negative values.
+   */
+  const adjustmentSliders = [
+    { key: 'brightness', label: 'Brightness', min: -100, max: 100 },
+    { key: 'contrast', label: 'Contrast', min: -100, max: 100 },
+    { key: 'saturation', label: 'Saturation', min: -100, max: 100 },
+    { key: 'sepia', label: 'Sepia', min: 0, max: 100 },
+    { key: 'blur', label: 'Blur', min: 0, max: 100 },
+    { key: 'invert', label: 'Invert', min: 0, max: 100 },
+    { key: 'grayscale', label: 'Grayscale', min: 0, max: 100 },
+  ] as const
 </script>
 
 <template>
-  <!-- Crop Tools -->
   <v-list
     v-if="activePhoto"
     variant="flat"
@@ -79,6 +88,7 @@
             <template v-else>
               <v-icon-btn
                 v-tooltip="'Crop'"
+                aria-label="Start cropping"
                 color="primary"
                 density="compact"
                 icon="mdi-crop"
@@ -91,7 +101,6 @@
         </div>
       </template>
 
-      <!-- Aspect Ratio -->
       <div class="my-2 d-flex justify-center">
         <v-label class="text-caption mr-2">Ratio</v-label>
         <v-btn-toggle
@@ -99,7 +108,6 @@
           class="flex-wrap"
           density="compact"
           mandatory
-          @update:model-value="setAspectRatio"
         >
           <v-btn
             v-for="ratio in aspectRatios"
@@ -122,7 +130,6 @@
         <span class="text-h6">Rotate</span>
       </template>
 
-      <!-- Rotate Controls -->
       <v-btn-group
         class="d-flex justify-center"
         density="compact"
@@ -132,7 +139,7 @@
           color="dark"
           prepend-icon="mdi-rotate-right"
           size="x-small"
-          @click="() => rotateFine(90)"
+          @click="rotate(90)"
         >
           +90°
         </v-btn>
@@ -140,23 +147,23 @@
           color="dark"
           prepend-icon="mdi-rotate-left"
           size="x-small"
-          @click="() => rotateFine(-90)"
+          @click="rotate(-90)"
         >
-          -90°
+          −90°
         </v-btn>
         <v-btn
           color="dark"
           prepend-icon="mdi-rotate-left"
           size="x-small"
-          @click="() => rotateFine(-1)"
+          @click="rotate(-1)"
         >
-          -1°
+          −1°
         </v-btn>
         <v-btn
           color="dark"
           prepend-icon="mdi-rotate-right"
           size="x-small"
-          @click="() => rotateFine(1)"
+          @click="rotate(1)"
         >
           +1°
         </v-btn>
@@ -189,91 +196,20 @@
         </div>
       </template>
 
-      <!-- Sliders -->
       <div class="mt-1 px-1">
         <v-slider
-          v-model="activePhoto.brightness"
+          v-for="slider in adjustmentSliders"
+          :key="slider.key"
+          v-model="activePhoto[slider.key]"
           density="compact"
           hide-details
-          label="Brightness"
-          max="100"
-          min="-100"
+          :label="slider.label"
+          :max="slider.max"
+          :min="slider.min"
           step="1"
           thumb-label
           thumb-size="10"
-          @dblclick="activePhoto.brightness = 0"
-        />
-        <v-slider
-          v-model="activePhoto.contrast"
-          density="compact"
-          hide-details
-          label="Contrast"
-          max="100"
-          min="-100"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.contrast = 0"
-        />
-        <v-slider
-          v-model="activePhoto.saturation"
-          density="compact"
-          hide-details
-          label="Saturation"
-          max="100"
-          min="-100"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.saturation = 0"
-        />
-        <v-slider
-          v-model="activePhoto.sepia"
-          density="compact"
-          hide-details
-          label="Sepia"
-          max="100"
-          min="0"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.sepia = 0"
-        />
-        <v-slider
-          v-model="activePhoto.blur"
-          density="compact"
-          hide-details
-          label="Blur"
-          max="100"
-          min="0"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.blur = 0"
-        />
-        <v-slider
-          v-model="activePhoto.invert"
-          density="compact"
-          hide-details
-          label="Invert"
-          max="100"
-          min="0"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.invert = 0"
-        />
-        <v-slider
-          v-model="activePhoto.grayscale"
-          density="compact"
-          hide-details
-          label="Grayscale"
-          max="100"
-          min="-100"
-          step="1"
-          thumb-label
-          thumb-size="10"
-          @dblclick="activePhoto.grayscale = 0"
+          @dblclick="activePhoto[slider.key] = 0"
         />
       </div>
     </v-list-item>

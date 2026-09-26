@@ -28,9 +28,6 @@ export default defineConfig({
         },
       ],
       dts: 'src/auto-imports.d.ts',
-      eslintrc: {
-        enabled: true,
-      },
       vueTemplate: true,
     }),
     Components({
@@ -51,8 +48,8 @@ export default defineConfig({
         families: [
           {
             name: 'Roboto',
-            weights: [100, 300, 400, 500, 700, 900],
-            styles: ['normal', 'italic'],
+            weights: [300, 400, 500, 700],
+            styles: ['normal'],
           },
         ],
       },
@@ -67,7 +64,6 @@ export default defineConfig({
       'unplugin-vue-router/data-loaders/basic',
     ],
   },
-  define: { 'process.env': {} },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('src', import.meta.url)),

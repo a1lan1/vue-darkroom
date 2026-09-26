@@ -1,50 +1,49 @@
 <script setup lang="ts">
-  import { storeToRefs } from 'pinia'
-  import { onUnmounted, ref, watch } from 'vue'
+  import { onUnmounted } from 'vue'
   import DragOverlay from '@/components/DragOverlay.vue'
   import FileImporter from '@/components/FileImporter.vue'
   import HelpDialog from '@/components/HelpDialog.vue'
   import PhotoEditor from '@/components/PhotoEditor.vue'
   import { useDragDrop } from '@/composables/useDragDrop'
   import { useEditorHotkeys } from '@/composables/useEditorHotkeys'
-  import { useAppStore } from '@/stores/AppStore'
-  import { usePhotoStore } from '@/stores/PhotoStore'
+  import { useAppStore } from '@/stores/appStore'
+  import { usePhotoStore } from '@/stores/photoStore'
 
   const photoStore = usePhotoStore()
-  const { addPhotoFromFile, destroyCropper } = photoStore
-
   const appStore = useAppStore()
-  const { importTrigger } = storeToRefs(appStore)
-
-  const fileImporter = ref<InstanceType<typeof FileImporter>>()
 
   useEditorHotkeys()
 
   const { isDragOver, dragEvents } = useDragDrop(files => {
-    for (const file of files) {
-      addPhotoFromFile(file)
-    }
+    void photoStore.addPhotosFromFiles(files)
   })
 
-  watch(importTrigger, () => {
-    fileImporter.value?.triggerImport()
+  onUnmounted(() => {
+    photoStore.destroyCropper()
   })
-
-  onUnmounted(destroyCropper)
 </script>
 
 <template>
-  <FileImporter ref="fileImporter" />
+  <FileImporter />
 
   <div
-    class="editor-area"
     v-bind="dragEvents"
+    class="editor-area"
   >
     <DragOverlay :show="isDragOver" />
     <PhotoEditor />
   </div>
 
   <HelpDialog />
+
+  <v-snackbar
+    location="bottom"
+    :model-value="appStore.notification !== null"
+    timeout="4000"
+    @update:model-value="appStore.dismissNotification()"
+  >
+    {{ appStore.notification }}
+  </v-snackbar>
 </template>
 
 <style lang="scss" scoped>
@@ -60,6 +59,6 @@
   justify-content: center;
   background-color: black;
   color: white;
-  z-index: 1; /* Ensure it's above v-main background but below overlays */
+  z-index: 1;
 }
 </style>

@@ -4,16 +4,33 @@
   import { usePhotoStore } from '@/stores/photoStore'
 
   const photoStore = usePhotoStore()
-  const { isExporting, exportProgress } = storeToRefs(photoStore)
+  const { isExporting } = storeToRefs(photoStore)
   const { exportAll } = photoStore
 
   const appStore = useAppStore()
   const { triggerImport } = appStore
 
+  /**
+   * The counts come from the result of `exportAll()`, not from `exportProgress`:
+   * the store clears the progress state before the promise resolves, so reading
+   * it after the await always reported zero.
+   */
   async function handleExport (): Promise<void> {
     try {
-      await exportAll()
-      appStore.notify(`Exported ${exportProgress.value?.total ?? 0} photo(s)`)
+      const result = await exportAll()
+
+      if (!result) {
+        return
+      }
+
+      const exported = result.exported.length
+      const failed = result.failed.length
+
+      appStore.notify(
+        failed > 0
+          ? `Exported ${exported} photo(s), ${failed} failed`
+          : `Exported ${exported} photo(s)`,
+      )
     } catch (error) {
       console.error('[export] failed', error)
       appStore.notify('Export failed. Please try again.')

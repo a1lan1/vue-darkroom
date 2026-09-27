@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 import { exportAllPhotos } from '@/services/imageExport'
 import { createPhotoItem, loadPhoto, releasePhotoSource } from '@/services/photoLoader'
-import { type ColorCorrection, createDefaultCropState, type ExportFormat, type ExportProgress, type ExportSize, type PhotoItem } from '@/types'
+import { type ColorCorrection, createDefaultCropState, type ExportFormat, type ExportProgress, type ExportResult, type ExportSize, type PhotoItem } from '@/types'
 import { buildImageFilter } from '@/utils/imageFilter'
 
 const NEUTRAL_CORRECTION: ColorCorrection = {
@@ -175,10 +175,14 @@ export const usePhotoStore = defineStore('photo', {
      *
      * Re-entrant calls are ignored and `isExporting` is always cleared, so the
      * progress indicator can never get stuck.
+     *
+     * The result is returned so callers can report what actually happened.
+     * `exportProgress` is deliberately cleared before this resolves, so
+     * reading it after the await can only ever report zero.
      */
-    async exportAll (): Promise<void> {
+    async exportAll (): Promise<ExportResult | null> {
       if (this.isExporting || this.photos.length === 0) {
-        return
+        return null
       }
 
       const total = this.photos.length
@@ -206,6 +210,8 @@ export const usePhotoStore = defineStore('photo', {
         for (const file of result.exported) {
           this.setExportedSize(file.photoId, file.size)
         }
+
+        return result
       } catch (error) {
         console.error('[export] failed', error)
         throw error

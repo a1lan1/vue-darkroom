@@ -10,7 +10,15 @@
   const photoStore = usePhotoStore()
   const appStore = useAppStore()
   const { isExporting, exportProgress, exportQuality, exportSize, exportFormat, totalExportedSize } = storeToRefs(photoStore)
-  const { exportFormatOptions, exportSizeOptions } = storeToRefs(appStore)
+
+  /**
+   * Read straight off the store rather than through `storeToRefs`: these are
+   * static option lists, not reactive state, and `storeToRefs` only exposes
+   * refs and getters. Going through it left the fields `undefined`, which
+   * rendered an empty format toggle and a "No data available" select.
+   */
+  const exportFormatOptions = appStore.exportFormatOptions
+  const exportSizeOptions = appStore.exportSizeOptions
 
   const drawerOpen = ref(true)
   const exportPanel = ref([0])

@@ -1,6 +1,6 @@
 import { storeToRefs } from 'pinia'
 import { useHotkey } from 'vuetify'
-import { guardHotkey } from '@/composables/useSafeHotkey'
+import { guardHotkey, guardTextEntry } from '@/composables/useSafeHotkey'
 import { usePhotoStore } from '@/stores/photoStore'
 
 export function useEditorHotkeys () {
@@ -23,9 +23,15 @@ export function useEditorHotkeys () {
     }
   }
 
-  useHotkey('Alt+ArrowLeft', guardHotkey(() => moveActive(-1)))
-  useHotkey('Alt+ArrowRight', guardHotkey(() => moveActive(1)))
+  // Navigation is an application-level action, so it must not depend on which
+  // control holds the focus. Importing leaves the focus on the trigger button,
+  // and a strict guard silently swallowed these shortcuts until the user
+  // clicked a thumbnail.
+  useHotkey('Alt+ArrowLeft', guardTextEntry(() => moveActive(-1)))
+  useHotkey('Alt+ArrowRight', guardTextEntry(() => moveActive(1)))
 
+  // Deleting is destructive and would fight with the focused control, so this
+  // one keeps the strict guard.
   useHotkey('Backspace', guardHotkey(() => {
     if (activePhotoId.value) {
       removePhoto(activePhotoId.value)

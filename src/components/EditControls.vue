@@ -2,7 +2,7 @@
   import { storeToRefs } from 'pinia'
   import { useHotkey } from 'vuetify'
   import { usePhotoEditor } from '@/composables/usePhotoEditor'
-  import { guardHotkey } from '@/composables/useSafeHotkey'
+  import { guardTextEntry } from '@/composables/useSafeHotkey'
   import { usePhotoStore } from '@/stores/photoStore'
 
   const photoStore = usePhotoStore()
@@ -20,17 +20,37 @@
     rotate,
   } = usePhotoEditor()
 
-  useHotkey('[', guardHotkey(() => void rotate(90)))
-  useHotkey(']', guardHotkey(() => void rotate(-90)))
-  useHotkey('\'', guardHotkey(() => void rotate(1)))
-  useHotkey('\\', guardHotkey(() => void rotate(-1)))
-  useHotkey('c', guardHotkey(() => void startCropping()))
-  useHotkey('enter', guardHotkey(() => {
-    if (isCropping.value) {
-      applyCrop()
+  useHotkey('[', guardTextEntry(() => void rotate(90)))
+  useHotkey(']', guardTextEntry(() => void rotate(-90)))
+  useHotkey('\'', guardTextEntry(() => void rotate(1)))
+  useHotkey('\\', guardTextEntry(() => void rotate(-1)))
+  useHotkey('c', guardTextEntry(() => void startCropping()))
+
+  /**
+   * While the cropper is open, Enter commits the crop.
+   *
+   * The cropper is usually opened by the `c` shortcut, which leaves the focus
+   * on whatever the user came from: the Import button, a ratio button, a
+   * thumbnail. A strict guard would swallow Enter in all of those cases and the
+   * crop would look frozen. Outside crop mode Enter keeps its native meaning
+   * and activates the focused control.
+   *
+   * Cancel is the single control that keeps Enter to itself, because discarding
+   * a crop is the one outcome the user cannot get back.
+   */
+  useHotkey('enter', (event: KeyboardEvent) => {
+    if (!isCropping.value) {
+      return
     }
-  }))
-  useHotkey('esc', guardHotkey(() => {
+
+    if (event.target instanceof Element && event.target.closest('.cancel-crop-button') !== null) {
+      return
+    }
+
+    void applyCrop()
+  })
+
+  useHotkey('esc', guardTextEntry(() => {
     if (isCropping.value) {
       cancelCrop()
     }
@@ -75,6 +95,7 @@
                 Apply
               </v-btn>
               <v-btn
+                class="cancel-crop-button"
                 color="grey"
                 density="comfortable"
                 prepend-icon="mdi-close"

@@ -3,7 +3,8 @@ import { registerPlugins } from '@/plugins'
 
 import App from './App.vue'
 
-import 'unfonts.css'
+import '@fontsource-variable/inter'
+import '@/styles/main.scss'
 
 /**
  * Initialises Sentry only for production builds that were given a DSN.

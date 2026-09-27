@@ -1,10 +1,19 @@
-/**
- * src/styles/settings.scss
- *
- * Configures SASS variables and Vuetify overwrites
- */
+// https://vuetifyjs.com/features/sass-variables/
+@use 'vuetify/settings' with (
+  // Roboto shipped with only four weights, so every heading collapsed onto
+  // 500 and the type scale had no top end. The Inter variable axis covers
+  // 100-900, which is what the scale in src/styles/main.scss assumes.
+  $body-font-family: (
+    'Inter Variable',
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif
+  ),
 
-// https://vuetifyjs.com/features/sass-variables/`
-// @use 'vuetify/settings' with (
-//   $color-pack: false
-// );
+  // 6px root gives a 3/6/12/36 ramp: 12px is the button and card radius,
+  // 36px is reserved for pill-shaped surfaces.
+  $border-radius-root: 6px
+);

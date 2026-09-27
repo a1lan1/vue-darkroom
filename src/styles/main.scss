@@ -1,0 +1,212 @@
+/**
+ * src/styles/main.scss
+ *
+ * Global tokens and base styles.
+ *
+ * Colour roles that Vuetify owns live in the theme (src/plugins/vuetify.ts).
+ * Everything Vuetify has no slot for — hairlines, radii, elevation, motion,
+ * focus rings, type scale — is declared here as a custom property, so a
+ * scoped `<style>` block, a template `v-bind()` and a `:deep()` selector all
+ * resolve the same value.
+ *
+ * Vuetify exposes its theme as comma-separated channels (`--v-theme-primary:
+ * 245,165,36`), so every derived colour must use the legacy `rgba()` form.
+ * The modern `rgb(245 165 36 / 14%)` syntax cannot be mixed with commas.
+ */
+
+:root {
+  /* Hairlines ------------------------------------------------------------ */
+  --dr-hairline: rgb(255 255 255 / 8%);
+  --dr-hairline-strong: rgb(255 255 255 / 16%);
+
+  /* Radii ---------------------------------------------------------------- */
+  --dr-radius-xs: 6px;
+  --dr-radius-sm: 8px;
+  --dr-radius-md: 12px;
+  --dr-radius-lg: 16px;
+  --dr-radius-pill: 999px;
+
+  /* Elevation ------------------------------------------------------------ */
+  --dr-shadow-panel: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 30%);
+  --dr-shadow-raised: 0 2px 6px rgb(0 0 0 / 36%), 0 16px 40px rgb(0 0 0 / 45%);
+  --dr-shadow-image: 0 8px 40px rgb(0 0 0 / 55%);
+  --dr-shadow-accent: 0 6px 20px rgba(var(--v-theme-primary, 245, 165, 36), 0.22);
+
+  /* Accent derivations --------------------------------------------------- */
+  --dr-accent-soft: rgba(var(--v-theme-primary, 245, 165, 36), 0.14);
+  --dr-accent-ring: rgba(var(--v-theme-primary, 245, 165, 36), 0.55);
+
+  /* Brand --------------------------------------------------------------- */
+  --dr-brand-core: rgb(var(--v-theme-primary, 245, 165, 36));
+  --dr-brand-rim: rgba(var(--v-theme-primary, 245, 165, 36), 0.3);
+  --dr-brand-blade: rgba(var(--v-theme-primary, 245, 165, 36), 0.85);
+
+  /* Motion --------------------------------------------------------------- */
+  --dr-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dr-dur-fast: 120ms;
+  --dr-dur-base: 200ms;
+  --dr-dur-slow: 320ms;
+
+  /* Layout metrics ------------------------------------------------------- */
+  --dr-appbar-height: 60px;
+  --dr-drawer-width: 320px;
+  --dr-filmstrip-height: 104px;
+  --dr-touch-target: 40px;
+}
+
+/* -------------------------------------------------------------------------
+ * Base
+ * ---------------------------------------------------------------------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+  overscroll-behavior: none;
+}
+
+/*
+ * A photo editor is a reading surface first: the numbers next to a slider and
+ * the counters in the sidebar shift as they tick, and proportional digits make
+ * the whole column jitter.
+ */
+.tnum,
+.v-slider-thumb__label {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* -------------------------------------------------------------------------
+ * Buttons
+ *
+ * Vuetify uppercases every `.v-btn` and this app leans on labels rather than
+ * icons alone, so stock behaviour produced shouting "IMPORT PHOTOS". The type
+ * scale in main.scss assumes sentence case everywhere.
+ *
+ * The `.v-application` prefix is load-bearing. Vuetify injects each component
+ * stylesheet on first use, so a bare `.v-btn` rule ties on specificity and then
+ * loses on order. The extra class wins regardless of when the sheet lands.
+ * ---------------------------------------------------------------------- */
+
+.v-application .v-btn {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 550;
+  transition:
+    background-color var(--dr-dur-fast) var(--dr-ease),
+    transform var(--dr-dur-fast) var(--dr-ease),
+    opacity var(--dr-dur-fast) var(--dr-ease);
+}
+
+/* Toolbar buttons inherit the app bar height, so they are not touch sized. */
+.v-application .v-btn--icon {
+  --v-btn-height: 40px;
+  --v-btn-width: 40px;
+}
+
+/* -------------------------------------------------------------------------
+ * Overlays
+ *
+ * Menus and dialogs are teleported to the body, so the scoped styles of the
+ * component that opened one never reach them, and the theme surface on its own
+ * is the same colour as the panel behind it. The export size dropdown was
+ * dissolving into the format toggle underneath it. Painting the overlay
+ * content instead of the list inside it keeps the list itself reusable, and
+ * keeps the border on the element that actually clips its own overflow.
+ * ---------------------------------------------------------------------- */
+
+/*
+ * The compound selector is load-bearing for the same reason `.v-btn` needs
+ * `.v-application`: Vuetify's own `.v-overlay__content` rule ties on
+ * specificity with a bare `.dr-overlay` and then wins on load order.
+ *
+ * `!important` on the radius is not laziness. Something in the injected
+ * component styles outranks even an inline `border-radius` here, and the menu
+ * kept a 6px system radius while every other property in this rule applied
+ * normally. This is the same trade Vuetify's own radius utilities make.
+ */
+.v-overlay__content.dr-overlay {
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid var(--dr-hairline-strong);
+  border-radius: var(--dr-radius-md) !important;
+  box-shadow: var(--dr-shadow-raised);
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------
+ * Focus
+ *
+ * Never removed — only reshaped into a ring that reads on both the graphite
+ * chrome and the amber accent surfaces.
+ * ---------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary, 245, 165, 36));
+  outline-offset: 2px;
+  border-radius: var(--dr-radius-xs);
+}
+
+.v-application {
+  outline: none;
+}
+
+/* -------------------------------------------------------------------------
+ * Selection & scrollbars
+ * ---------------------------------------------------------------------- */
+
+::selection {
+  background: rgba(var(--v-theme-primary, 245, 165, 36), 0.28);
+  color: rgb(var(--v-theme-on-background, 255, 255, 255));
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border: 3px solid transparent;
+  border-radius: var(--dr-radius-pill);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  background-clip: content-box;
+}
+
+/* -------------------------------------------------------------------------
+ * Motion
+ *
+ * The cropper, the filmstrip and the export spinner all animate. A user who
+ * asked the OS to reduce motion should get the state change without the
+ * travel.
+ * ---------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

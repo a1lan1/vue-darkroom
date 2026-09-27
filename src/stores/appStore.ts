@@ -23,6 +23,13 @@ export const useAppStore = defineStore('app', () => {
   const showHelp = ref(false)
 
   /**
+   * The editing panel becomes an overlay below the md breakpoint, so its open
+   * state has to outlive the component that renders it: the header owns the
+   * button that toggles it, the panel owns the drawer that shows it.
+   */
+  const panelOpen = ref(true)
+
+  /**
    * Incremented to request a file picker from whichever component owns the
    * hidden `<input type="file">`. A counter is used instead of a boolean so
    * repeated clicks always re-trigger the dialog.
@@ -34,6 +41,10 @@ export const useAppStore = defineStore('app', () => {
 
   function toggleHelp (value?: boolean): void {
     showHelp.value = value ?? !showHelp.value
+  }
+
+  function togglePanel (value?: boolean): void {
+    panelOpen.value = value ?? !panelOpen.value
   }
 
   function triggerImport (): void {
@@ -50,11 +61,13 @@ export const useAppStore = defineStore('app', () => {
 
   return {
     showHelp,
+    panelOpen,
     importTrigger,
     notification,
     exportFormatOptions: EXPORT_FORMAT_OPTIONS,
     exportSizeOptions: EXPORT_SIZE_OPTIONS,
     toggleHelp,
+    togglePanel,
     triggerImport,
     notify,
     dismissNotification,

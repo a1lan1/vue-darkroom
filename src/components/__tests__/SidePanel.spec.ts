@@ -6,7 +6,6 @@ import { createVuetify } from 'vuetify'
 import { VApp } from 'vuetify/components'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { VIconBtn } from 'vuetify/labs/VIconBtn'
 import SidePanel from '@/components/SidePanel.vue'
 import { providePhotoEditor } from '@/composables/usePhotoEditor'
 import { usePhotoStore } from '@/stores/photoStore'
@@ -25,9 +24,9 @@ vi.mock('@/services/photoLoader', async importOriginal => {
   }
 })
 
-// Mirrors src/plugins/vuetify.ts, including the labs component the app relies on.
+// Mirrors src/plugins/vuetify.ts.
 const vuetify = createVuetify({
-  components: { ...components, VIconBtn },
+  components,
   directives,
 })
 

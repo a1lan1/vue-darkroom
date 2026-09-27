@@ -8,8 +8,23 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="DarkRoom" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tells the UA to paint dark form controls and scrollbars before the
+         bundle boots, so a dark app never flashes a white page. -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0C0D0F" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="DarkRoom is a browser photo editor with non-destructive cropping, rotation and colour grading, plus batch export to ZIP." />
     <title>DarkRoom</title>
+    <!-- The app boots on a dark canvas, so the document is painted dark before
+         the bundle arrives instead of flashing white on the way in. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background-color: #0C0D0F;
+        color: #E8EAED;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>

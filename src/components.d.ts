@@ -8,15 +8,18 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BrandMark: typeof import('./components/BrandMark.vue')['default']
     DragOverlay: typeof import('./components/DragOverlay.vue')['default']
     EditControls: typeof import('./components/EditControls.vue')['default']
     FileImporter: typeof import('./components/FileImporter.vue')['default']
     HelpDialog: typeof import('./components/HelpDialog.vue')['default']
+    PanelSection: typeof import('./components/PanelSection.vue')['default']
     PhotoCarousel: typeof import('./components/PhotoCarousel.vue')['default']
     PhotoEditor: typeof import('./components/PhotoEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SidePanel: typeof import('./components/SidePanel.vue')['default']
+    SliderField: typeof import('./components/SliderField.vue')['default']
     TheToolbar: typeof import('./components/TheToolbar.vue')['default']
   }
 }

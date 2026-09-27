@@ -51,8 +51,13 @@
   object-fit: contain;
 }
 
-// Keeps the cropper backdrop consistent with the filtered preview.
-:deep(.cropper-bg) {
+// Keeps the image inside the cropper consistent with the filtered preview.
+//
+// The filter must never reach `.cropper-container`: cropper.js puts the crop
+// box, the view box, the guide lines and the resize handles inside it, so a
+// filter on the container blurs, sepias and inverts the tool itself. Only the
+// image layer (`.cropper-canvas`) may carry the effect.
+:deep(.cropper-canvas) {
   filter: v-bind(imageFilter);
 }
 </style>

@@ -1,6 +1,7 @@
 import Cropper from 'cropperjs'
 import { computed, type ComputedRef, inject, type InjectionKey, nextTick, onScopeDispose, provide, ref, type Ref, watch, type WritableComputedRef } from 'vue'
-import { renderCrop } from '@/services/cropRenderer'
+import { renderCrop, rotatedFrameSize } from '@/services/cropRenderer'
+import { loadImage } from '@/services/photoLoader'
 import { usePhotoStore } from '@/stores/photoStore'
 import { hasCrop, type PhotoItem } from '@/types'
 import 'cropperjs/dist/cropper.css'
@@ -20,23 +21,14 @@ const ASPECT_RATIOS: AspectRatioOption[] = [
 
 const PREVIEW_MAX_EDGE = 1600
 const PREVIEW_QUALITY = 0.9
-
-/**
- * cropper.js is an event emitter, but its bundled typings only describe the
- * chainable command surface. This narrows the instance to the events this
- * composable actually subscribes to.
- */
-type CropperWithEvents = Cropper & {
-  on: (event: 'crop', handler: () => void) => void
-  off: (event: 'crop', handler: () => void) => void
-}
+const MIN_CANVAS_EDGE = 1
 
 export interface PhotoEditorController {
   /** Registers the image the cropper attaches to. Owned by the editor view. */
   registerImage: (element: HTMLImageElement | null) => void
-  /** Rendered crop preview. Undefined when the photo is not cropped. */
+  /** Rendered crop preview. Falls back to the original while cropping. */
   previewSrc: Ref<string | undefined>
-  /** Source to display: the untouched original while cropping. */
+  /** Source to display on screen. */
   displaySrc: ComputedRef<string>
   isCropping: ComputedRef<boolean>
   aspectRatios: AspectRatioOption[]
@@ -50,23 +42,51 @@ export interface PhotoEditorController {
   setAspectRatio: (ratio: number | undefined) => void
 }
 
-/**
- * Guards the asynchronous cropper bootstrap.
- *
- * Constructing a cropper requires a DOM tick, so a cancel that arrives in that
- * window would otherwise leave an orphaned cropper attached to the image. Every
- * await re-checks the token and bails out when the editor moved on.
- */
-let initToken = 0
-
 function createPhotoEditor (): PhotoEditorController {
   const store = usePhotoStore()
 
   const image = ref<HTMLImageElement | null>(null)
   const previewSrc = ref<string | undefined>()
 
+  /**
+   * Guards the asynchronous cropper bootstrap.
+   *
+   * Constructing a cropper needs a DOM tick, so a cancel arriving in that
+   * window would otherwise leave an orphaned cropper bound to the image. Every
+   * await re-checks the token and bails out when the editor has moved on.
+   */
+  let initToken = 0
   let previewFrame = 0
   let previewRevision = 0
+
+  /**
+   * Decoded copies of the originals, keyed by object URL.
+   *
+   * Previews must never be rendered from the on-screen `<img>`: while cropping
+   * the cropper hides it, and once a preview exists that element shows the
+   * downscaled preview instead of the original. Re-decoding the original keeps
+   * every crop at full resolution.
+   */
+  const sourceImages = new Map<string, Promise<HTMLImageElement>>()
+
+  function getSourceImage (src: string): Promise<HTMLImageElement> {
+    const cached = sourceImages.get(src)
+
+    if (cached) {
+      return cached
+    }
+
+    const pending = loadImage(src).catch((error: unknown) => {
+      // Do not cache failures: a later attempt may succeed.
+      sourceImages.delete(src)
+
+      throw error
+    })
+
+    sourceImages.set(src, pending)
+
+    return pending
+  }
 
   function registerImage (element: HTMLImageElement | null): void {
     image.value = element
@@ -74,6 +94,8 @@ function createPhotoEditor (): PhotoEditorController {
 
   const isCropping = computed(() => store.isCropping)
 
+  // The cropper reads its transform from the rendered element, so while
+  // cropping it must always point at the untouched original.
   const displaySrc = computed<string>(() => {
     const photo = store.activePhoto
 
@@ -81,8 +103,6 @@ function createPhotoEditor (): PhotoEditorController {
       return ''
     }
 
-    // The cropper reads its transform from the rendered element, so it must
-    // always point at the untouched original.
     return isCropping.value ? photo.src : (previewSrc.value ?? photo.src)
   })
 
@@ -115,25 +135,39 @@ function createPhotoEditor (): PhotoEditorController {
   }
 
   /**
-   * Rebuilds a display-sized preview of the crop from the original.
+   * Rebuilds a display-sized preview of the crop straight from the original.
    *
-   * The crop is a cache, never the source of truth: the original object URL is
-   * always re-rendered, so cropping repeatedly cannot degrade the image.
+   * The preview is a cache, never the source of truth, so cropping repeatedly
+   * cannot degrade the image.
    */
-  function renderPreview (photo: PhotoItem): void {
-    const element = image.value
+  async function renderPreview (photo: PhotoItem): Promise<void> {
+    const revision = ++previewRevision
 
-    if (!element?.naturalWidth || !element.naturalHeight) {
+    let image: HTMLImageElement
+
+    try {
+      image = await getSourceImage(photo.src)
+    } catch (error) {
+      console.warn('[crop] could not read the original', error)
       return
     }
 
-    const revision = ++previewRevision
+    if (revision !== previewRevision) {
+      return
+    }
+
+    const naturalWidth = image.naturalWidth
+    const naturalHeight = image.naturalHeight
+
+    if (!naturalWidth || !naturalHeight) {
+      return
+    }
 
     try {
-      const cropped = renderCrop(element, element.naturalWidth, element.naturalHeight, photo)
+      const cropped = renderCrop(image, naturalWidth, naturalHeight, photo)
       const scale = Math.min(1, PREVIEW_MAX_EDGE / Math.max(cropped.width, cropped.height))
-      const width = Math.max(1, Math.round(cropped.width * scale))
-      const height = Math.max(1, Math.round(cropped.height * scale))
+      const width = Math.max(MIN_CANVAS_EDGE, Math.round(cropped.width * scale))
+      const height = Math.max(MIN_CANVAS_EDGE, Math.round(cropped.height * scale))
 
       const canvas = document.createElement('canvas')
       canvas.width = width
@@ -159,6 +193,7 @@ function createPhotoEditor (): PhotoEditorController {
     }
   }
 
+  /** Coalesces the flood of crop events into one render per frame. */
   function schedulePreview (): void {
     cancelPendingPreview()
 
@@ -168,30 +203,9 @@ function createPhotoEditor (): PhotoEditorController {
       const photo = store.activePhoto
 
       if (photo && hasCrop(photo, photo.isCropped)) {
-        renderPreview(photo)
+        void renderPreview(photo)
       }
     })
-  }
-
-  async function renderPreviewWhenReady (photo: PhotoItem): Promise<void> {
-    // The <img> src has just changed, so decoding must settle first.
-    await nextTick()
-
-    const element = image.value
-
-    if (!element?.decode) {
-      renderPreview(photo)
-
-      return
-    }
-
-    try {
-      await element.decode()
-    } catch {
-      return
-    }
-
-    renderPreview(photo)
   }
 
   async function initCropper (): Promise<void> {
@@ -207,24 +221,36 @@ function createPhotoEditor (): PhotoEditorController {
     store.destroyCropper()
     await nextTick()
 
-    if (token !== initToken || !store.isCropping) {
+    if (token !== initToken || !store.isCropping || image.value !== element) {
       return
     }
 
+    /**
+     * Cropper.js applies `options.data` through `setData()` before it fires
+     * `ready`, so passing the saved crop here restores it whether the image
+     * was already decoded (synchronous `ready`) or still loading.
+     */
+    const data = hasCrop(photo, photo.isCropped)
+      ? {
+          x: photo.x,
+          y: photo.y,
+          width: photo.width,
+          height: photo.height,
+          rotate: photo.rotate,
+          scaleX: photo.scaleX,
+          scaleY: photo.scaleY,
+        }
+      : undefined
+
+    // cropper.js is not an event emitter: interaction is observed through the
+    // callbacks declared in its options.
     const cropper = new Cropper(element, {
       aspectRatio: photo.aspectRatio,
       viewMode: 1,
       autoCrop: true,
       zoomOnWheel: false,
-      ready () {
-        if (token !== initToken) {
-          return
-        }
-
-        if (hasCrop(photo, photo.isCropped)) {
-          cropper.setData(photo)
-        }
-      },
+      data,
+      crop: schedulePreview,
     })
 
     store.setCropper(cropper)
@@ -243,32 +269,32 @@ function createPhotoEditor (): PhotoEditorController {
     await initCropper()
   }
 
-  function applyCrop (): void {
+  function applyCrop (): Promise<void> {
     if (!store.cropper) {
-      return
+      return Promise.resolve()
     }
 
     initToken += 1
     store.persistCrop()
     store.isCropping = false
     store.destroyCropper()
+    clearPreview()
 
     const photo = store.activePhoto
 
-    if (photo && hasCrop(photo, photo.isCropped)) {
-      void renderPreviewWhenReady(photo)
-    }
+    return photo && hasCrop(photo, photo.isCropped) ? renderPreview(photo) : Promise.resolve()
   }
 
   function cancelCrop (): void {
     initToken += 1
     store.isCropping = false
     store.destroyCropper()
+    clearPreview()
 
     const photo = store.activePhoto
 
     if (photo && hasCrop(photo, photo.isCropped)) {
-      void renderPreviewWhenReady(photo)
+      void renderPreview(photo)
     }
   }
 
@@ -281,17 +307,66 @@ function createPhotoEditor (): PhotoEditorController {
     store.resetAdjustments()
   }
 
+  /**
+   * Rotates the photo without starting the cropper.
+   *
+   * Rotation is an edit in its own right; the cropper is only needed when the
+   * user is actively framing a shot. While it *is* active the live instance is
+   * used so the crop box follows the rotation on screen.
+   */
   async function rotate (degrees: number): Promise<void> {
-    if (!store.isCropping) {
-      await startCropping()
-    }
+    const photo = store.activePhoto
 
-    if (!store.cropper) {
+    if (!photo) {
       return
     }
 
-    const data = store.cropper.getData()
-    store.cropper.rotate((data.rotate ?? 0) + degrees)
+    const cropper = store.cropper
+
+    if (cropper) {
+      const data = cropper.getData()
+      cropper.rotate((data.rotate ?? 0) + degrees)
+
+      return
+    }
+
+    let naturalWidth = 0
+    let naturalHeight = 0
+
+    try {
+      const image = await getSourceImage(photo.src)
+      naturalWidth = image.naturalWidth
+      naturalHeight = image.naturalHeight
+    } catch (error) {
+      console.warn('[crop] could not read the original for rotation', error)
+
+      return
+    }
+
+    if (!naturalWidth || !naturalHeight) {
+      return
+    }
+
+    const rotated = ((photo.rotate ?? 0) + degrees) % 360
+    const nextRotate = rotated < 0 ? rotated + 360 : rotated
+    const wasCropped = hasCrop(photo, photo.isCropped)
+
+    photo.rotate = nextRotate
+
+    // cropper.js keeps the crop rectangle numerically stable across a rotation
+    // and only swaps the frame dimensions, so an existing crop is left alone.
+    if (!wasCropped) {
+      const frame = rotatedFrameSize(naturalWidth, naturalHeight, nextRotate)
+
+      photo.x = 0
+      photo.y = 0
+      photo.width = frame.width
+      photo.height = frame.height
+      photo.isCropped = true
+    }
+
+    clearPreview()
+    await renderPreview(photo)
   }
 
   function setAspectRatio (ratio: number | undefined): void {
@@ -309,31 +384,21 @@ function createPhotoEditor (): PhotoEditorController {
       initToken += 1
       store.isCropping = false
       store.destroyCropper()
+      clearPreview()
 
       const photo = store.activePhoto
 
-      if (photo?.isCropped) {
-        void renderPreviewWhenReady(photo)
-      } else {
-        clearPreview()
+      if (photo && hasCrop(photo, photo.isCropped)) {
+        void renderPreview(photo)
       }
-    },
-  )
-
-  // Live updates while the cropper is dragged, coalesced per animation frame.
-  watch(
-    () => store.cropper,
-    (cropper, previous) => {
-      ;(previous as CropperWithEvents | null)?.off('crop', schedulePreview)
-      ;(cropper as CropperWithEvents | null)?.on('crop', schedulePreview)
     },
   )
 
   onScopeDispose(() => {
     initToken += 1
     cancelPendingPreview()
-    ;(store.cropper as CropperWithEvents | null)?.off('crop', schedulePreview)
     store.destroyCropper()
+    sourceImages.clear()
   })
 
   return {
@@ -357,6 +422,7 @@ export const PHOTO_EDITOR_KEY: InjectionKey<PhotoEditorController> = Symbol('pho
 
 /**
  * Creates the single editor controller and exposes it to the subtree.
+ *
  * Must be called by the layout, which is the closest common ancestor of the
  * editor view and the crop controls.
  */

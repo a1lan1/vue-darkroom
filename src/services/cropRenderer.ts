@@ -46,6 +46,23 @@ function isQuarterTurned (degrees: number): boolean {
 }
 
 /**
+ * Pixel size of the full frame after `degrees` of rotation.
+ *
+ * cropper.js swaps the natural dimensions on a quarter turn, so the rotated
+ * canvas is as wide as the source is tall. Callers that apply a rotation
+ * without a live cropper need the same numbers to describe a full-frame crop.
+ */
+export function rotatedFrameSize (
+  naturalWidth: number,
+  naturalHeight: number,
+  degrees: number,
+): { width: number, height: number } {
+  return isQuarterTurned(normalizeDegrees(degrees))
+    ? { width: naturalHeight, height: naturalWidth }
+    : { width: naturalWidth, height: naturalHeight }
+}
+
+/**
  * Resolves stored crop state into a concrete pixel transform.
  *
  * `naturalWidth`/`naturalHeight` are the unrotated natural dimensions of the
@@ -57,12 +74,7 @@ export function computeCropTransform (
   crop: CropState,
 ): CropTransform {
   const rotate = normalizeDegrees(crop.rotate)
-  const quarterTurned = isQuarterTurned(rotate)
-
-  // cropper.js swaps the natural dimensions on a quarter turn, so the rotated
-  // canvas is as wide as the source is tall.
-  const fullWidth = quarterTurned ? naturalHeight : naturalWidth
-  const fullHeight = quarterTurned ? naturalWidth : naturalHeight
+  const { width: fullWidth, height: fullHeight } = rotatedFrameSize(naturalWidth, naturalHeight, rotate)
 
   // cropper.js stores the box in the source's own pixel units; clamp it so a
   // stale value can never read outside the rebuilt canvas.
@@ -97,9 +109,7 @@ export function renderRotatedSource (
   crop: CropState,
 ): HTMLCanvasElement {
   const rotate = normalizeDegrees(crop.rotate)
-  const quarterTurned = isQuarterTurned(rotate)
-  const width = quarterTurned ? naturalHeight : naturalWidth
-  const height = quarterTurned ? naturalWidth : naturalHeight
+  const { width, height } = rotatedFrameSize(naturalWidth, naturalHeight, rotate)
 
   const canvas = document.createElement('canvas')
   canvas.width = Math.max(1, Math.round(width))

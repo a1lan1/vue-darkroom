@@ -15,7 +15,13 @@ export function exceedsCanvasLimits (width: number, height: number): boolean {
   return width * height > MAX_CANVAS_AREA
 }
 
-function loadImage (src: string): Promise<HTMLImageElement> {
+/**
+ * Decodes a URL into a drawable image.
+ *
+ * Exported so the crop preview can re-read the untouched original instead of
+ * the on-screen element, which may be showing a downscaled preview already.
+ */
+export function loadImage (src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image()
 

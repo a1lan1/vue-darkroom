@@ -11,6 +11,13 @@ export default defineConfig(
         globals: true,
         include: ['src/**/__tests__/**/*.spec.ts'],
         setupFiles: ['src/__tests__/setup.ts'],
+        // Vuetify ships per-component CSS imports. Inlining lets Vite process
+        // them, which is required to mount real `v-` components in specs.
+        server: {
+          deps: {
+            inline: ['vuetify'],
+          },
+        },
         coverage: {
           provider: 'v8',
           include: ['src/**/*.{ts,vue}'],

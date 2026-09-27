@@ -12,6 +12,16 @@ config.global.stubs = {
 // see a clean `null` so the production fallbacks are exercised.
 HTMLCanvasElement.prototype.getContext = (() => null) as never
 
+// Vuetify's layout system observes its own element on construction, and jsdom
+// ships no ResizeObserver. A no-op keeps `v-app` mountable in component specs.
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = class {
+    observe (): void {}
+    unobserve (): void {}
+    disconnect (): void {}
+  }
+}
+
 // `crypto.randomUUID` is unavailable in insecure contexts and missing in jsdom.
 if (!globalThis.crypto?.randomUUID) {
   Object.defineProperty(globalThis.crypto, 'randomUUID', {
